@@ -1,0 +1,444 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals
+
+import sys, os, json
+if sys.version_info[0] >= 3:
+    import pathlib
+else:
+    reload(sys)
+    sys.setdefaultencoding('utf8')
+    input = raw_input
+
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+    GRAY = '\033[90m'
+
+#################################
+#
+# Utilities
+#
+
+def print_error(e):
+    print('{0}{2}{1}'.format(bcolors.FAIL, bcolors.ENDC, e))
+
+def print_warning(w):
+    print('{0}{2}{1}'.format(bcolors.WARNING, bcolors.ENDC, w))
+
+def print_bold(s):
+    print('{0}{2}{1}'.format(bcolors.BOLD, bcolors.ENDC, s))
+
+def print_debug(s):
+    print('{0}{2}{1}'.format(bcolors.GRAY, bcolors.ENDC, s))
+
+def print_green(s):
+    print('{0}{2}{1}'.format(bcolors.OKGREEN, bcolors.ENDC, s))
+
+def print_blue(s):
+    print('{0}{2}{1}'.format(bcolors.OKBLUE, bcolors.ENDC, s))
+
+def cancel():
+    print_debug('Operation cancelled')
+    exit()
+
+def file_text(filepath):
+    if sys.version_info[0] >= 3:
+        return pathlib.Path(filepath).read_text()
+    else:
+        with open(filepath, 'r') as f:
+            return f.read()
+
+def validate_unacceptable_symbols(m, valids):
+    if not m is None and type(m) == str:
+        for l in m:
+            if valids.find(l) < 0:
+                print_error('Plugin name should not contain symbol "{}"'.format(l))
+                return 1
+    return 0
+
+def replace_template(filename, template, value):
+    try:
+        pr_str = file_text(filename)
+        pr_str = pr_str.replace(template, value)
+        with open(filename, 'w') as f:
+            f.write(pr_str)
+    except IOError as e:
+        print_error(e)
+
+def store_plugin_name(plname, cpp_plname, display_name, use_swift_flg):
+
+    param_use_swift_runtime = ''
+    param_system = 'system=[]'
+    param_linker_flags = ''
+    if use_swift_flg:
+        param_use_swift_runtime = 'use_swift_runtime=true'
+        param_system = 'system=["Foundation.framework","StoreKit.framework"]'
+        param_linker_flags = 'linker_flags=["-ObjC","-Wl,-weak-lswiftCore,-weak-lswiftObjectiveC,-weak-lswift_Concurrency"]'
+
+    gdip = """
+[config]
+name="{display_name}"
+binary="{plname}.xcframework"
+initialization="{cpp_plname}_init"
+deinitialization="{cpp_plname}_deinit"
+{param_use_swift_runtime}
+
+[dependencies]
+linked=[]
+embedded=[]
+{param_system}
+capabilities=[]
+files=[]
+{param_linker_flags}
+
+[plist]
+""".format(
+    display_name=display_name,
+    plname=plname,
+    cpp_plname=cpp_plname,
+    param_use_swift_runtime=param_use_swift_runtime,
+    param_system=param_system,
+    param_linker_flags=param_linker_flags
+    )
+
+    cpp_header = """
+void {cpp_plname}_init();
+void {cpp_plname}_deinit();
+""".format(cpp_plname=cpp_plname)
+
+    cpp_body = """
+#import <Foundation/Foundation.h>
+#import "godot_plugin.h"
+#import "godot_plugin_class.h"
+#import "core/config/engine.h"
+
+PluginClass *plugin;
+
+void """+cpp_plname+"""_init() {
+    plugin = memnew(PluginClass);
+    Engine::get_singleton()->add_singleton(Engine::Singleton(\""""+display_name+"""\", plugin));
+}
+
+void """+cpp_plname+"""_deinit() {
+   if (plugin) {
+       memdelete(plugin);
+   }
+}
+"""
+
+    meta = {
+        "name": plname,
+        "display_name": display_name,
+        "description": "",
+        "version": "1.0.0",
+        "license": "MIT",
+        "url": "https://github.com/YourGitHubName/your_github_repository",
+        "category": "misc",
+        "godot_version": "3.2.4",
+        "author": {
+            "name": "Your Name",
+            "url": "https://your_site.com",
+            "donate": "Url to your donate page, or remove if not needed"
+        },
+        "platform_ios": {
+            "files": {
+                "bin/{plname}.debug.xcframework".format(plname=plname): "ios/plugins/{plname}/{plname}.debug.xcframework".format(plname=plname),
+                "bin/{plname}.release.xcframework".format(plname=plname): "ios/plugins/{plname}/{plname}.release.xcframework".format(plname=plname),
+                "{plname}.gdip".format(plname=plname): "ios/plugins/{plname}/".format(plname=plname)
+            }
+        }
+    }
+    with open('godot_plugin/godot_plugin.h', 'w') as f:
+        f.write(cpp_header)
+    with open('godot_plugin/godot_plugin.mm', 'w') as f:
+        f.write(cpp_body)
+    with open(plname+'.gdip', 'w') as f:
+        f.write(gdip)
+    with open('nativelib.json', 'w') as f:
+        json.dump(meta, f, indent = 2)
+    try:
+        pr_str = file_text('godot_plugin/godot_plugin_class.h')
+        lines = pr_str.split('\n')
+        with open('godot_plugin/godot_plugin_class.h', 'w') as f:
+            for l in lines:
+                if l.startswith('    GDCLASS'):
+                    f.write('    GDCLASS('+display_name+', Object);\n')
+                else:
+                    f.write(l + '\n')
+        pr_str = file_text('generate_static_library.sh')
+        lines = pr_str.split('\n')
+        with open('generate_static_library.sh', 'w') as f:
+            for l in lines:
+                if l.startswith('OUT='):
+                    f.write('OUT='+plname+'\n')
+                elif l.startswith('CLASS='):
+                    f.write('CLASS='+display_name+'\n')
+                else:
+                    f.write(l + '\n')
+    except IOError as e:
+        print_error(e)
+        exit()
+    print_bold('Plugin name set successfully. You can edit file "nativelib.json" and update plugin description, author information and repository url')
+
+def store_new_method(ret_type, method_name, args, use_swift):
+    inputs = []
+    n = 1
+    converts = []
+    swiftargs = []
+    for argtype in args:
+        varname = 'arg'+str(n)
+        inputs.append(argtype + ' ' + varname)
+        vname = 'a'+str(n)
+        if argtype == 'String':
+            converts.append('    NSString *' + vname + ' = to_nsstring(' + varname + ');')
+            swiftargs.append(['NSString', vname, vname])
+        elif argtype == 'Array':
+            converts.append('    NSArray *' + vname + ' = to_nsarray(' + varname + ');')
+            swiftargs.append(['NSArray', vname, vname])
+        elif argtype == 'Dictionary':
+            converts.append('    NSDictionary *' + vname + ' = to_nsdictionary(' + varname + ');')
+            swiftargs.append(['NSDictionary', vname, vname])
+        elif argtype == 'int':
+            swiftargs.append(['Int', vname, varname])
+        elif argtype == 'float':
+            swiftargs.append(['Float', vname, varname])
+        else:
+            swiftargs.append([argtype, vname, varname])
+        n += 1
+    swift_call = ''
+    if use_swift:
+        if len(swiftargs) > 0:
+            swift_call = '[SwiftClass '+method_name+'With'
+            for sa in swiftargs:
+                if sa == swiftargs[0]:
+                    swift_call += sa[1].upper() + ':' + sa[2] + ' ';
+                else:
+                    swift_call += sa[1] + ':' + sa[2] + ' ';
+            swift_call += ']'
+        else:
+            swift_call = '[SwiftClass '+method_name+']'
+        swift_ret_type = ''
+        if ret_type == 'void':
+            swift_call += ';'
+        elif ret_type == 'int':
+            swift_call = '    return ' + swift_call + ';';
+            swift_ret_type = ' -> Int'
+        elif ret_type == 'float':
+            swift_call = '    return ' + swift_call + ';';
+            swift_ret_type = ' -> Float'
+        elif ret_type == 'String':
+            swift_call = '    return from_nsstring('+swift_call+');'
+            swift_ret_type = ' -> NSString'
+        elif ret_type == 'Array':
+            swift_call = '    return from_nsarray('+swift_call+');'
+            swift_ret_type = ' -> NSArray'
+        elif ret_type == 'Dictionary':
+            swift_call = '    return from_nsdictionary('+swift_call+');'
+            swift_ret_type = ' -> NSDictionary'
+
+        sargs = []
+        for sa in swiftargs:
+            sargs.append(sa[1]+': '+sa[0])
+        swift_declaration = """
+    static func """+method_name+"(" + ', '.join(sargs) + ") "+swift_ret_type+""" {
+    }
+"""
+        swift_completed = False
+        try:
+            pr_str = file_text('godot_plugin/SwiftClass.swift')
+            lines = pr_str.split('\n')
+            with open('godot_plugin/SwiftClass.swift', 'w') as f:
+                for l in lines:
+                    if l.startswith('}'):
+                        f.write(swift_declaration)
+                        swift_completed = True
+                    f.write(l + '\n')
+        except IOError as e:
+            print_error(e)
+            exit()
+        if not swift_completed:
+            print_error('Can not process Swift class')
+            cancel()
+
+    declaration = "\n"+ret_type+" PluginClass::"+method_name+"(" + ', '.join(inputs) + ") {\n"
+    completed = False
+    try:
+        pr_str = file_text('godot_plugin/godot_plugin_class.h')
+        lines = pr_str.split('\n')
+        with open('godot_plugin/godot_plugin_class.h', 'w') as f:
+            for l in lines:
+                f.write(l + '\n')
+                if l == 'public:':
+                    f.write('    '+ret_type+' '+method_name+' (' + ', '.join(inputs) + ');\n')
+                    completed = True
+        if not completed:
+            print_error('Can not process header')
+            cancel()
+        pr_str = file_text('godot_plugin/godot_plugin_class.mm')
+        lines = pr_str.split('\n')
+        with open('godot_plugin/godot_plugin_class.mm', 'w') as f:
+            for l in lines:
+                f.write(l + '\n')
+                if l.startswith('void PluginClass::_bind_methods() {'):
+                    f.write('    ClassDB::bind_method(D_METHOD("'+method_name+'"), &PluginClass::'+method_name+');\n')
+            f.write(declaration)
+            f.write('\n'.join(converts))
+            if use_swift:
+                f.write('\n'+swift_call+'\n')
+            f.write('\n}\n')
+    except IOError as e:
+        print_error(e)
+        exit()
+    print('Generated new method: '+ret_type+' '+method_name+' (' + ', '.join(args) + ')')
+
+def set_plugin_name():
+    print_green('Enter new plugin name (use only letters, digits, dots and dash sign):')
+    print_debug('  example: domain.plugin-name')
+    print_debug('Or press enter to cancel operation')
+    plname = ''
+    while True:
+        plname = input('Plugin name: ')
+        if plname == '':
+            cancel()
+        errors = validate_unacceptable_symbols(plname, 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-.')
+        if plname[0] in '0123456789.-':
+            errors += 1
+            print_error('Plugin name should start with letter')
+        if errors <= 0:
+            break
+    print_bold('Using plugin name '+plname)
+    cpp_plname = plname.replace('-', '_').replace('.', '_')
+    print_green('Enter singleton name (use only letters and digits):')
+    print_debug('  example: DomainPluginName')
+    print_debug('Or press enter to cancel operation')
+    display_name = ''
+    while True:
+        display_name = input('Singleton name: ')
+        if display_name == '':
+            cancel()
+        errors = validate_unacceptable_symbols(display_name, 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')
+        if display_name[0] in '0123456789':
+            errors += 1
+            print_error('Singleton name should start with letter')
+        if errors <= 0:
+            break
+    print_bold('Using singleton name '+display_name)
+    print_green('Will this plugin use Swift?:')
+    print_bold(' 0: No')
+    print_bold(' 1: Yes')
+    use_swift = ''
+    use_swift_flg = False
+    while True:
+        use_swift = input('Use Swift: ')
+        if use_swift == '':
+            cancel()
+        elif use_swift == '0':
+            break
+        elif use_swift == '1':
+            use_swift_flg = True
+            break
+    print_bold('Use Swift:'+str(use_swift_flg))
+
+    store_plugin_name(plname, cpp_plname, display_name, use_swift_flg)
+
+def input_cpp_type(include_void):
+    if include_void:
+        print_bold(' 0: void (no value)')
+    print_bold(' 1: int (integral number)')
+    print_bold(' 2: float (decimal number)')
+    print_bold(' 3: String')
+    print_bold(' 4: Array')
+    print_bold(' 5: Dictionary')
+    ret_type = ''
+    while True:
+        ret_type = input('Return type: ')
+        if ret_type == '':
+            cancel()
+        elif ret_type == '0' and include_void:
+            return 'void'
+        elif ret_type == '1':
+            return 'int'
+        elif ret_type == '2':
+            return 'float'
+        elif ret_type == '3':
+            return 'String'
+        elif ret_type == '4':
+            return 'Array'
+        elif ret_type == '5':
+            return 'Dictionary'
+        else:
+            print('Unknown answer')
+
+def add_new_method(use_swift):
+    print_green('Enter new method\'s name (use only letters, digits and dash):')
+    print_debug('Or press enter to cancel operation')
+    method_name = ''
+    while True:
+        method_name = input('Method name: ')
+        if method_name == '':
+            cancel()
+        errors = validate_unacceptable_symbols(method_name, 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_')
+        if method_name[0] in '0123456789_':
+            errors += 1
+            print_error('Method name should start with letter')
+        if errors <= 0:
+            break
+    print_bold('Select method\'s return type:')
+    ret_type = input_cpp_type(True)
+    args = []
+    print_bold('Set input argument types')
+    new_arg = ''
+    while True:
+        print('Current method declaration: '+ret_type+' '+method_name+' (' + ', '.join(args) + ')')
+        print_green('Select operation:')
+        print_debug('Or press enter to cancel operation')
+        print_bold(' 0: Finish method declaration')
+        print_bold(' 1: Add one more input argument')
+        new_arg = input('Operation: ')
+        if new_arg == '':
+            cancel()
+        elif new_arg == '0':
+            break
+        elif new_arg == '1':
+            print_green('Select type for new argument')
+            new_arg = input_cpp_type(False)
+            args.append(new_arg)
+        else:
+            print('Uknown operation')
+    store_new_method(ret_type, method_name, args, use_swift)
+
+def show_menu():
+    while True:
+        print_green('Select operation:')
+        print_bold(' 0: Change plugin name')
+        print_bold(' 1: Add new CPP method')
+        print_bold(' 2: Add new Swift method')
+        print_bold(' 3: Exit')
+        op = input('Operation: ')
+        if op == '':
+            cancel()
+        elif op == '0':
+            set_plugin_name()
+        elif op == '1':
+            add_new_method(False)
+        elif op == '2':
+            add_new_method(True)
+        elif op == '3':
+            exit()
+        else:
+            print('Uknown operation')
+
+print_green('*** Godot iOS plugin template ***')
+
+if not os.path.exists('nativelib.json'):
+    set_plugin_name()
+else:
+    show_menu()
+

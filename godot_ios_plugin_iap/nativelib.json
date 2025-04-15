@@ -1,0 +1,22 @@
+{
+  "name": "ios-in-app-purchase",
+  "display_name": "IOSInAppPurchase",
+  "description": "",
+  "version": "1.0.0",
+  "license": "MIT",
+  "url": "https://github.com/YourGitHubName/your_github_repository",
+  "category": "misc",
+  "godot_version": "3.2.4",
+  "author": {
+    "name": "Your Name",
+    "url": "https://your_site.com",
+    "donate": "Url to your donate page, or remove if not needed"
+  },
+  "platform_ios": {
+    "files": {
+      "bin/ios-in-app-purchase.debug.xcframework": "ios/plugins/ios-in-app-purchase/ios-in-app-purchase.debug.xcframework",
+      "bin/ios-in-app-purchase.release.xcframework": "ios/plugins/ios-in-app-purchase/ios-in-app-purchase.release.xcframework",
+      "ios-in-app-purchase.gdip": "ios/plugins/ios-in-app-purchase/"
+    }
+  }
+}
