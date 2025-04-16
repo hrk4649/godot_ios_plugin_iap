@@ -1,2 +1,5 @@
 # for FAT or exFAT on macOS
 ._*
+
+# export directory
+export_ios/*
