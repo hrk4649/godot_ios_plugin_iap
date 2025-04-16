@@ -158,6 +158,7 @@ NSObject *variant_to_nsobject(Variant v) {
  * Bind plugin's public interface
  */
 void PluginClass::_bind_methods() {
+    ClassDB::bind_method(D_METHOD("request"), &PluginClass::request);
 }
 
 PluginClass::PluginClass() {
@@ -168,3 +169,11 @@ PluginClass::~PluginClass() {
     NSLog(@"deinitialize object");
 }
 
+
+
+int PluginClass::request(String arg1, Dictionary arg2) {
+    NSString *a1 = to_nsstring(arg1);
+    NSDictionary *a2 = to_nsdictionary(arg2);
+    return [SwiftClass requestWithA1:a1 a2:a2 ];
+
+}

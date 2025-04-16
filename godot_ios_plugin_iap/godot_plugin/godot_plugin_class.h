@@ -9,9 +9,11 @@ class PluginClass : public Object {
     static void _bind_methods();
     
 public:
+    int request (String arg1, Dictionary arg2);
     
     PluginClass();
     ~PluginClass();
 };
+
 
 
