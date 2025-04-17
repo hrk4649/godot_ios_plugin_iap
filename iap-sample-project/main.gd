@@ -13,6 +13,7 @@ func _ready() -> void:
         "message":"hello"
     }
     print(singleton.request("products", data))
+    print(singleton.request("test", data))
 
 func _receive_response(response_name:String, data:Dictionary) -> void:
     print("response:%s data:%s" % [response_name, data])
