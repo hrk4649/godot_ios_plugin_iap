@@ -159,14 +159,28 @@ NSObject *variant_to_nsobject(Variant v) {
  */
 void PluginClass::_bind_methods() {
     ClassDB::bind_method(D_METHOD("request"), &PluginClass::request);
+    
+    ADD_SIGNAL(MethodInfo("response",
+        PropertyInfo(Variant::STRING, "responseName"),
+        PropertyInfo(Variant::DICTIONARY, "data")));
+    
 }
 
 PluginClass::PluginClass() {
     NSLog(@"initialize object");
+    // set callback
+    ResponseCallback cb = ^(NSString *responseName, NSDictionary *data) {
+        NSLog(@"in the callback");
+        String cResName = from_nsstring(responseName);
+        Dictionary cData = from_nsdictionary(data);
+        emit_signal("response", cResName, cData);
+    };
+    [SwiftClass shared].callback = cb;
 }
 
 PluginClass::~PluginClass() {
     NSLog(@"deinitialize object");
+    [SwiftClass shared].callback = nil;
 }
 
 

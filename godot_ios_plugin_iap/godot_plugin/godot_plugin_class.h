@@ -15,5 +15,6 @@ public:
     ~PluginClass();
 };
 
-
+// callback definition
+typedef void (^ResponseCallback)(NSString *responseName, NSDictionary *data);
 
