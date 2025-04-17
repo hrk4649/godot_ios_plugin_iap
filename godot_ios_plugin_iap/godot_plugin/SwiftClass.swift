@@ -1,5 +1,7 @@
 import Foundation
+// import StoreKit
 
+@available(iOS 13.0, *)
 @objcMembers public class SwiftClass : NSObject
 {
     static let shared = SwiftClass()
@@ -14,11 +16,28 @@ import Foundation
 
         switch a1 {
         case "products":
-            response(a1: a1 as String, a2: a2 as! Dictionary<String, Any>)
-            return 0
+            //response(a1: a1 as String, a2: a2 as! Dictionary<String, Any>)
+            return requestProducts()
         default:
             return 1
         }
+    }
+    
+    static func requestProducts() -> Int {
+        Task {
+            do {
+                print("requestProducts")
+
+                try await Task.sleep(nanoseconds: 1 * 1000 * 1000 * 1000)
+                let data = [
+                    "dummy": "dummy"
+                ]
+                response(a1: "products", a2: data)
+            } catch {
+                print(error)
+            }
+        }
+        return 0
     }
 }
 
