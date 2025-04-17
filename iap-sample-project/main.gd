@@ -12,6 +12,7 @@ func _ready() -> void:
     var data = {
         "message":"hello"
     }
+    print(singleton.request("dummy", {}))
     print(singleton.request("products", data))
     print(singleton.request("test", data))
 

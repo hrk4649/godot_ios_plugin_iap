@@ -15,13 +15,40 @@ import Foundation
     static func request(a1: NSString, a2: NSDictionary)  -> Int {
 
         switch a1 {
+        case "dummy":
+            return requestDummy()
         case "products":
-            //response(a1: a1 as String, a2: a2 as! Dictionary<String, Any>)
             return requestProducts()
         default:
             return 1
         }
     }
+
+    static func requestDummy() -> Int {
+        Task {
+            do {
+                print("requestDummy")
+
+                try await Task.sleep(nanoseconds: 3 * 1000 * 1000 * 1000)
+                let data = [
+                    "dummyString": "dummy",
+                    "dummyInt": 123,
+                    "dummyFloat": 123.456,
+                    "dummyArray1": ["a", "b", "c"],
+                    "dummyArray2":[
+                        ["a":"str"],
+                        ["b":1],
+                        ["c":0.5],
+                    ]
+                ]
+                response(a1: "dummy", a2: data)
+            } catch {
+                print(error)
+            }
+        }
+        return 0
+    }
+    
     
     static func requestProducts() -> Int {
         Task {
