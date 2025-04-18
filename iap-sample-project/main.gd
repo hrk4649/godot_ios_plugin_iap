@@ -13,7 +13,13 @@ func _ready() -> void:
         "message":"hello"
     }
     print(singleton.request("dummy", {}))
-    print(singleton.request("products", data))
+    var product_data = {
+        "product_ids":[
+            "consumable001", 
+            "non_consumable001"
+            ]
+        }
+    print(singleton.request("products", product_data))
     print(singleton.request("test", data))
 
 func _receive_response(response_name:String, data:Dictionary) -> void:

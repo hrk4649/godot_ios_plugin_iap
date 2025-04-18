@@ -1,7 +1,7 @@
 import Foundation
-// import StoreKit
+import StoreKit
 
-@available(iOS 13.0, *)
+@available(iOS 15.0, *)
 @objcMembers public class SwiftClass : NSObject
 {
     static let shared = SwiftClass()
@@ -18,7 +18,7 @@ import Foundation
         case "dummy":
             return requestDummy()
         case "products":
-            return requestProducts()
+            return requestProducts(data:a2)
         default:
             return 1
         }
@@ -49,17 +49,25 @@ import Foundation
         return 0
     }
     
-    
-    static func requestProducts() -> Int {
+    static func requestProducts(data:NSDictionary) -> Int {
+        print("requestProducts")
+        if data.object(forKey:"product_ids") == nil {
+            print("requestProducts: no 'product_ids'")
+            return 1
+        }
+        let productIds = data["product_ids"] as? [String]
+        if productIds == nil {
+            print("requestProducts: failed to get productIds")
+            return 1
+        }
+        print("requestProducts:productIds:\(productIds)")
         Task {
             do {
-                print("requestProducts")
+                let products = try await Product.products(
+                    for:productIds!)
+                print("requestProducts:products:\(products)")
 
-                try await Task.sleep(nanoseconds: 1 * 1000 * 1000 * 1000)
-                let data = [
-                    "dummy": "dummy"
-                ]
-                response(a1: "products", a2: data)
+                // response(a1: "products", a2: data)
             } catch {
                 print(error)
             }
