@@ -60,7 +60,7 @@ import StoreKit
             print("requestProducts: failed to get productIds")
             return 1
         }
-        print("requestProducts:productIds:\(productIds)")
+        print("requestProducts:productIds:\(String(describing: productIds))")
         Task {
             do {
                 let products = try await Product.products(
