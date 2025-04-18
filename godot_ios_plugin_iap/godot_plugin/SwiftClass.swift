@@ -21,6 +21,8 @@ import StoreKit
             return requestProducts(data:a2)
         case "purchase":
             return requestPurchase(data:a2)
+        case "purchasedProducts":
+            return requestPurchasedProducts()
         default:
             return 1
         }
@@ -175,6 +177,28 @@ import StoreKit
                 ]
                 response(a1: "error", a2: errorData)
             }
+        }
+        return 0
+    }
+    
+    static func requestPurchasedProducts() -> Int {
+        Task {
+            var purchasedProductIDs: Set<String> = []
+            for await result in Transaction.currentEntitlements {
+                guard case .verified(let entitlement) = result else { continue }
+                print("requestPurchasedProducts: entitlement: \(entitlement)")
+                if entitlement.revocationDate == nil {
+                    purchasedProductIDs.insert(entitlement.productID)
+                }
+            }
+            let productIDs: [String] = Array(purchasedProductIDs)
+            print("requestPurchasedProducts: productIDs: \(productIDs)")
+            let resultData = [
+                "request":"purchasedProducts",
+                "product_ids": productIDs,
+                "result":"success"
+            ]
+            response(a1: "purchasedProducts", a2: resultData)
         }
         return 0
     }
