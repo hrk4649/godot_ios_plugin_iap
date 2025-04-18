@@ -15,6 +15,10 @@ run/main_scene="uid://da7fc52adm1lp"
 config/features=PackedStringArray("4.4", "GL Compatibility")
 config/icon="res://icon.svg"
 
+[display]
+
+window/handheld/orientation=1
+
 [rendering]
 
 renderer/rendering_method="gl_compatibility"

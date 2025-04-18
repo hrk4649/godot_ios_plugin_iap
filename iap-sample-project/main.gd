@@ -1,4 +1,10 @@
-extends Node2D
+extends Control
+
+var ItemButton = preload("res://item_button.tscn")
+
+@onready var container = $VBoxContainer
+
+var singleton
 
 func _ready() -> void:
     print("_ready")
@@ -7,7 +13,7 @@ func _ready() -> void:
         return
 
     print("IOSInAppPurchase is found")
-    var singleton = Engine.get_singleton("IOSInAppPurchase")
+    singleton = Engine.get_singleton("IOSInAppPurchase")
     singleton.response.connect(_receive_response)
 
     # var data = {
@@ -27,3 +33,26 @@ func _ready() -> void:
 
 func _receive_response(response_name:String, data:Dictionary) -> void:
     print("response:%s data:%s" % [response_name, data])
+    match response_name:
+        "products":
+            call_deferred("list_products", data)
+        "purchase":
+            pass
+
+func list_products(data) -> void:
+    for child in container.get_children():
+        container.remove_child(child)
+
+    var products = data["products"]
+    for product in products:
+        var button = ItemButton.instantiate()
+        container.add_child(button)
+        button.text = "ITEM:%s PRICE:%s TYPE:%s" % [
+            product["displayName"], 
+            product["displayPrice"],
+            product["type"]
+        ]
+        button.pressed.connect(purchase_item.bind(product["product_id"]))
+
+func purchase_item(product_id) -> void:
+    print("purchase_item:%s" % product_id)
