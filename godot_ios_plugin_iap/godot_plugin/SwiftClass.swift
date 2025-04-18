@@ -49,6 +49,20 @@ import StoreKit
         return 0
     }
     
+    static func convertProducts(_ products: [Product]) -> [[String: Any]] {
+        return products.map { product in
+            return [
+                "product_id": product.id,
+                "type": product.type.rawValue,
+                "displayName": product.displayName,
+                "description": product.description,
+                "price": product.price,
+                "displayPrice": product.displayPrice,
+                "isFamilyShareable": product.isFamilyShareable
+            ]
+        }
+    }
+    
     static func requestProducts(data:NSDictionary) -> Int {
         print("requestProducts")
         if data.object(forKey:"product_ids") == nil {
@@ -63,13 +77,20 @@ import StoreKit
         print("requestProducts:productIds:\(String(describing: productIds))")
         Task {
             do {
-                let products = try await Product.products(
-                    for:productIds!)
+                let products = try await Product.products(for:productIds!)
                 print("requestProducts:products:\(products)")
 
-                // response(a1: "products", a2: data)
+                let converted = convertProducts(products)
+                let resultData = ["products":converted]
+                
+                response(a1: "products", a2: resultData)
             } catch {
-                print(error)
+                // send error as signal
+                let errorData = [
+                    "request":"products",
+                    "error":error.localizedDescription
+                ]
+                response(a1: "error", a2: errorData)
             }
         }
         return 0
