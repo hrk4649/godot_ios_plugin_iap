@@ -15,8 +15,8 @@ func _ready() -> void:
     print(singleton.request("dummy", {}))
     var product_data = {
         "product_ids":[
-            "consumable001", 
-            "non_consumable001"
+            "dummy_consumable001", 
+            "dummy_non_consumable001"
             ]
         }
     print(singleton.request("products", product_data))
