@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3 uid="uid://ckntv15ywrhvi"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_mbnv8"]
+font_size = 32
+
+[node name="ItemLabel" type="Label"]
+offset_right = 75.0
+offset_bottom = 45.0
+size_flags_horizontal = 3
+text = "ITEM"
+label_settings = SubResource("LabelSettings_mbnv8")

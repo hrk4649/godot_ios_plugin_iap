@@ -1,6 +1,9 @@
-[gd_scene load_steps=2 format=3 uid="uid://da7fc52adm1lp"]
+[gd_scene load_steps=3 format=3 uid="uid://da7fc52adm1lp"]
 
 [ext_resource type="Script" uid="uid://bxhbrwfa4rkkt" path="res://main.gd" id="1_ig7tw"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_ig7tw"]
+font_size = 32
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -18,3 +21,21 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+
+[node name="LabelPurchase" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+text = "Purchase"
+label_settings = SubResource("LabelSettings_ig7tw")
+horizontal_alignment = 1
+
+[node name="PurchaseItems" type="VBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="LabelPurchasedItems" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+text = "Purchased Items"
+label_settings = SubResource("LabelSettings_ig7tw")
+horizontal_alignment = 1
+
+[node name="PurchasedItems" type="VBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
