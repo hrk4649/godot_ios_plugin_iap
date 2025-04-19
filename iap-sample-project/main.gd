@@ -71,3 +71,8 @@ func update_purchased_items(data) -> void:
 		var label = ItemLabel.instantiate()
 		container_purchased_items.add_child(label)
 		label.text = product_id
+
+func _on_button_purchased_item_pressed() -> void:
+	if singleton:
+		#print(singleton.request("purchasedProducts", {}))
+		print(singleton.request("entitlements", {}))

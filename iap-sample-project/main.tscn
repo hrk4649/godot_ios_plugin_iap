@@ -39,3 +39,10 @@ horizontal_alignment = 1
 
 [node name="PurchasedItems" type="VBoxContainer" parent="VBoxContainer"]
 layout_mode = 2
+
+[node name="ButtonPurchasedItem" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Update Purchased Items"
+
+[connection signal="pressed" from="VBoxContainer/ButtonPurchasedItem" to="." method="_on_button_purchased_item_pressed"]
