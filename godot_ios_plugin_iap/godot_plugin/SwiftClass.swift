@@ -66,6 +66,12 @@ import StoreKit
                 "displayPrice": product.displayPrice,
                 "isFamilyShareable": product.isFamilyShareable
             ]
+
+//            let json = try? JSONSerialization.jsonObject(
+//                with: product.jsonRepresentation, options: [])
+//            
+//            var map : [String:Any] = json as? [String:Any] ?? [:]
+//            return map
         }
     }
     
@@ -130,7 +136,7 @@ import StoreKit
                 print("requestPurchase:purchase:\(result)")
                 switch result {
                 case .success(.verified(let transaction)):
-                    // await transaction.finish()
+                    await transaction.finish()
                     let resultData = [
                         "request":"purchase",
                         "product_id": productId!,
@@ -217,6 +223,48 @@ import StoreKit
             with: transaction.jsonRepresentation, options: [])
         
         var entitlement : [String:Any] = json as? [String:Any] ?? [:]
+
+//        var entitlement = [
+//            "id":transaction.id,
+//            "originalID":transaction.originalID,
+//            "webOrderLineItemID":transaction.webOrderLineItemID ?? "",
+//            "productId":transaction.productID,
+//            "subscriptionGroupID":transaction.subscriptionGroupID ?? "",
+//            "purchaseDate":dateToString(transaction.purchaseDate),
+//            "originalPurchaseDate":dateToString(transaction.purchaseDate),
+//            "expirationDate":dateToString(transaction.expirationDate),
+//            "purchasedQuantity":transaction.purchasedQuantity,
+//            "isUpgraded":transaction.isUpgraded,
+//            // offer 17.2
+//            //   vs
+//            // offerType,
+//            // offerID,
+//            // offerPaymentModeStringRepresentation
+//            // offerPeriodStringRepresentation
+//            "revocationDate":dateToString(transaction.revocationDate),
+//            "revocationReason":transaction.revocationReason?.rawValue ?? "",
+//            "productType":transaction.productType,
+//            "appAccountToken":transaction.appAccountToken ?? "",
+//            // environment 16.0
+//            //   vs
+//            // environmentStringRepresentation
+//            // reason 17.0
+//            //   vs
+//            // reasonStringRepresentation
+//            // storefront 17.0
+//            //   vs
+//            // storefrontCountryCode
+//            // price 15.0
+//            // currency 16.0
+//            //   vs
+//            // currencyCode
+//            "appTransactionID":transaction.appTransactionID,
+//            // deviceVerification
+//            // deviceVerificationNonce
+//            "ownershipType":transaction.ownershipType.rawValue,
+//            "signedDate":dateToString(transaction.signedDate),
+//            // advancedCommerceInfo 18.4
+//        ] as [String : Any]
         
         if error != nil {
             entitlement["error"] = error!.localizedDescription
