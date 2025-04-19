@@ -5,15 +5,15 @@ import StoreKit
 @objcMembers public class SwiftClass : NSObject
 {
     static let shared = SwiftClass()
-
+    
     var callback: ((String, [String: Any]) -> Void)?
-
+    
     static func response(a1: String, a2: Dictionary<String, Any>) {
         shared.callback?(a1, a2)
     }
-
+    
     static func request(a1: NSString, a2: NSDictionary)  -> Int {
-
+        
         switch a1 {
         case "dummy":
             return requestDummy()
@@ -23,16 +23,18 @@ import StoreKit
             return requestPurchase(data:a2)
         case "purchasedProducts":
             return requestPurchasedProducts()
+        case "entitlements":
+            return requestEntitlements()
         default:
             return 1
         }
     }
-
+    
     static func requestDummy() -> Int {
         Task {
             do {
                 print("requestDummy")
-
+                
                 try await Task.sleep(nanoseconds: 3 * 1000 * 1000 * 1000)
                 let data = [
                     "dummyString": "dummy",
@@ -83,7 +85,7 @@ import StoreKit
             do {
                 let products = try await Product.products(for:productIds!)
                 print("requestProducts:products:\(products)")
-
+                
                 let converted = convertProducts(products)
                 let resultData = ["products":converted]
                 
@@ -128,7 +130,7 @@ import StoreKit
                 print("requestPurchase:purchase:\(result)")
                 switch result {
                 case .success(.verified(let transaction)):
-                    await transaction.finish()
+                    // await transaction.finish()
                     let resultData = [
                         "request":"purchase",
                         "product_id": productId!,
@@ -140,7 +142,8 @@ import StoreKit
                     let resultData = [
                         "request":"purchase",
                         "product_id": productId!,
-                        "result":"unverified"
+                        "result":"unverified",
+                        "error":error.localizedDescription
                     ]
                     response(a1: "purchase", a2: resultData)
                     break
@@ -199,6 +202,87 @@ import StoreKit
                 "result":"success"
             ]
             response(a1: "purchasedProducts", a2: resultData)
+        }
+        return 0
+    }
+    
+    static func dateToString(_ date:Date?)->String{
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        return if date == nil { "" } else { dateFormatter.string(from: date!) }
+    }
+    
+    static func convertEntitlement(transaction:Transaction, error:Error?) ->[String:Any] {
+        var entitlement = [
+            "id":transaction.id,
+            "originalID":transaction.originalID,
+            "webOrderLineItemID":transaction.webOrderLineItemID ?? "",
+            "productId":transaction.productID,
+            "subscriptionGroupID":transaction.subscriptionGroupID ?? "",
+            "purchaseDate":dateToString(transaction.purchaseDate),
+            "originalPurchaseDate":dateToString(transaction.purchaseDate),
+            "expirationDate":dateToString(transaction.expirationDate),
+            "purchasedQuantity":transaction.purchasedQuantity,
+            "isUpgraded":transaction.isUpgraded,
+            // offer 17.2
+            //   vs
+            // offerType,
+            // offerID,
+            // offerPaymentModeStringRepresentation
+            // offerPeriodStringRepresentation
+            "revocationDate":dateToString(transaction.revocationDate),
+            "revocationReason":transaction.revocationReason?.rawValue ?? "",
+            "productType":transaction.productType,
+            "appAccountToken":transaction.appAccountToken ?? "",
+            // environment 16.0
+            //   vs
+            // environmentStringRepresentation
+            // reason 17.0
+            //   vs
+            // reasonStringRepresentation
+            // storefront 17.0
+            //   vs
+            // storefrontCountryCode
+            // price 15.0
+            // currency 16.0
+            //   vs
+            // currencyCode
+            "appTransactionID":transaction.appTransactionID,
+            // deviceVerification
+            // deviceVerificationNonce
+            "ownershipType":transaction.ownershipType.rawValue,
+            "signedDate":dateToString(transaction.signedDate),
+            // advancedCommerceInfo 18.4
+        ] as [String : Any]
+        if error != nil {
+            entitlement["error"] = error!.localizedDescription
+        }
+        return entitlement
+    }
+    
+    static func requestEntitlements() -> Int {
+        Task {
+            var entitlements: [[String:Any]] = []
+            for await verificationResult in Transaction.currentEntitlements {
+                switch verificationResult {
+                case .verified(let transaction):
+                    let entitlement:[String:Any] = convertEntitlement(transaction: transaction, error: nil)
+                    entitlements.append(entitlement)
+                    
+                    break
+                case .unverified(let transaction, let verificationError):
+                    let entitlement:[String:Any] = convertEntitlement(transaction: transaction, error: verificationError)
+                    entitlements.append(entitlement)
+                    break
+                }
+            }
+            print("requestEntitlements: entitlements: \(entitlements)")
+            let resultData = [
+                "request":"entitlements",
+                "entitlements": entitlements,
+                "result":"success"
+            ]
+            response(a1: "entitlements", a2: resultData)
         }
         return 0
     }
