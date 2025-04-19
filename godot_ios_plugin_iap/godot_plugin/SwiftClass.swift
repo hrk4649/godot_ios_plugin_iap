@@ -7,6 +7,26 @@ import StoreKit
     static let shared = SwiftClass()
     
     var callback: ((String, [String: Any]) -> Void)?
+
+    private var updateTask:Task<Void, Never>? = nil
+    
+    override init() {
+        super.init()
+        updateTask = createUpdateTask()
+    }
+    
+    deinit {
+        updateTask = nil
+    }
+    
+    private func createUpdateTask() -> Task<Void, Never> {
+        Task(priority: .background) {
+            print("createUpdateTask")
+            for await verificationResult in Transaction.updates{
+                let ret = SwiftClass.requestEntitlements()
+            }
+        }
+    }
     
     static func response(a1: String, a2: Dictionary<String, Any>) {
         shared.callback?(a1, a2)
