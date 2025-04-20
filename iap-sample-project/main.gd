@@ -28,7 +28,9 @@ func _ready() -> void:
 	var product_data = {
 		"product_ids":[
 			"dummy_consumable001", 
-			"dummy_non_consumable001"
+			"dummy_non_consumable001",
+			"okinawa.flat_e.iap_demo_project.sg1.premium",
+			"okinawa.flat_e.iap_demo_project.sg1.standard"
 			]
 		}
 	print(singleton.request("products", product_data))
