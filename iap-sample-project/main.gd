@@ -30,7 +30,8 @@ func _ready() -> void:
 			"dummy_consumable001", 
 			"dummy_non_consumable001",
 			"okinawa.flat_e.iap_demo_project.sg1.premium",
-			"okinawa.flat_e.iap_demo_project.sg1.standard"
+			"okinawa.flat_e.iap_demo_project.sg1.standard",
+			"okinawa.flat_e.iap_demo_project.non_auto_renewal_subscription001"
 			]
 		}
 	print(singleton.request("products", product_data))
