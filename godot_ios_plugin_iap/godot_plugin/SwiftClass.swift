@@ -16,6 +16,7 @@ import StoreKit
     }
     
     deinit {
+        updateTask?.cancel()
         updateTask = nil
     }
     
@@ -23,6 +24,8 @@ import StoreKit
         Task(priority: .background) {
             print("createUpdateTask")
             for await verificationResult in Transaction.updates{
+                // Approved pending transaction comes here
+                print("updateTask: \(verificationResult)")
                 let ret = SwiftClass.requestEntitlements()
             }
         }
