@@ -9,4 +9,4 @@ offset_bottom = 45.0
 size_flags_horizontal = 3
 text = "ITEM"
 label_settings = SubResource("LabelSettings_mbnv8")
-autowrap_mode = 2
+autowrap_mode = 1
