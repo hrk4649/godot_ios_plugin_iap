@@ -26,7 +26,7 @@ import StoreKit
             for await verificationResult in Transaction.updates{
                 // Approved pending transaction comes here
                 print("updateTask: \(verificationResult)")
-                let ret = SwiftClass.requestEntitlements()
+                await SwiftClass.proceedUnfinishedTransactions()
             }
         }
     }
@@ -131,6 +131,16 @@ import StoreKit
         return 0
     }
     
+    static func convertPurchaseMap(transaction:Transaction) -> [String:Any] {
+        return [
+            "request":"purchase",
+            "original_id": transaction.originalID,
+            "web_order_line_item_id": transaction.webOrderLineItemID ?? "",
+            "product_id": transaction.productID,
+            "result":"success"
+        ]
+    }
+    
     static func requestPurchase(data:NSDictionary) -> Int {
         print("requestPurchase")
         if data.object(forKey:"product_id") == nil {
@@ -160,11 +170,7 @@ import StoreKit
                 switch result {
                 case .success(.verified(let transaction)):
                     await transaction.finish()
-                    let resultData = [
-                        "request":"purchase",
-                        "product_id": productId!,
-                        "result":"success"
-                    ]
+                    let resultData = convertToPurchaseResponse(transaction)
                     response(a1: "purchase", a2: resultData)
                     break
                 case .success(.unverified(_, let error)):
@@ -241,7 +247,7 @@ import StoreKit
         return if date == nil { "" } else { dateFormatter.string(from: date!) }
     }
     
-    static func convertEntitlement(transaction:Transaction, error:Error?) ->[String:Any] {
+    static func convertTransaction(transaction:Transaction, error:Error?) ->[String:Any] {
         let json = try? JSONSerialization.jsonObject(
             with: transaction.jsonRepresentation, options: [])
         
@@ -296,18 +302,29 @@ import StoreKit
         return entitlement
     }
     
+    static func convertToPurchaseResponse(_ transaction:Transaction) -> [String:Any] {
+        let resultData = [
+            "request":"purchase",
+            "product_id": transaction.productID,
+            "quantity": transaction.purchasedQuantity,
+            "product_type": transaction.productType.rawValue,
+            "result":"success"
+        ] as [String : Any]
+        return resultData
+    }
+    
     static func requestEntitlements() -> Int {
         Task {
             var entitlements: [[String:Any]] = []
             for await verificationResult in Transaction.currentEntitlements {
                 switch verificationResult {
                 case .verified(let transaction):
-                    let entitlement:[String:Any] = convertEntitlement(transaction: transaction, error: nil)
+                    let entitlement:[String:Any] = convertTransaction(transaction: transaction, error: nil)
                     entitlements.append(entitlement)
                     
                     break
                 case .unverified(let transaction, let verificationError):
-                    let entitlement:[String:Any] = convertEntitlement(transaction: transaction, error: verificationError)
+                    let entitlement:[String:Any] = convertTransaction(transaction: transaction, error: verificationError)
                     entitlements.append(entitlement)
                     break
                 }
@@ -321,6 +338,21 @@ import StoreKit
             response(a1: "entitlements", a2: resultData)
         }
         return 0
+    }
+    
+    static func proceedUnfinishedTransactions() async -> Void {
+        for await verificationResult in Transaction.unfinished {
+            switch verificationResult {
+            case .verified(let transaction):
+                await transaction.finish()
+                let resultData = convertToPurchaseResponse(transaction)
+                response(a1: "purchase", a2: resultData)
+                break
+            case .unverified(let transaction, let verificationError):
+                print("proceedUnfinishedTransactions: unverified transaction \(transaction), error \(verificationError)")
+                break
+            }
+        }
     }
 }
 
