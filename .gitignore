@@ -6,3 +6,6 @@ export_ios/*
 
 # godot plugin directory
 iap-sample-project/ios/plugins/*
+
+# private memo file
+MEMO.md
