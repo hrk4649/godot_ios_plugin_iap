@@ -46,8 +46,10 @@ import StoreKit
             return requestPurchase(data:a2)
         case "purchasedProducts":
             return requestPurchasedProducts()
-        case "entitlements":
-            return requestEntitlements()
+        case "transactionCurrentEntitlements":
+            return requestTransactionCurrentEntitlements()
+        case "transactionAll":
+            return requestTransactionAll()
         default:
             return 1
         }
@@ -331,18 +333,34 @@ import StoreKit
         return results
     }
     
-    static func requestEntitlements() -> Int {
+    static func requestTransactionCurrentEntitlements() -> Int {
         Task {
-            var entitlements: [[String:Any]] = await convertTransactions(
+            var transactions: [[String:Any]] = await convertTransactions(
                 Transaction.currentEntitlements
             )
-            print("requestEntitlements: entitlements: \(entitlements)")
+            print("requestTransactionCurrentEntitlements: transactions: \(transactions)")
             let resultData = [
-                "request":"entitlements",
-                "entitlements": entitlements,
+                "request":"transactionCurrentEntitlements",
+                "transactions": transactions,
                 "result":"success"
             ]
-            response(a1: "entitlements", a2: resultData)
+            response(a1: "transactionCurrentEntitlements", a2: resultData)
+        }
+        return 0
+    }
+    
+    static func requestTransactionAll() -> Int {
+        Task {
+            var transactions: [[String:Any]] = await convertTransactions(
+                Transaction.all
+            )
+            print("requestTransactionAll: transactions: \(transactions)")
+            let resultData = [
+                "request":"transactionAll",
+                "transactions": transactions,
+                "result":"success"
+            ]
+            response(a1: "transactionAll", a2: resultData)
         }
         return 0
     }

@@ -77,5 +77,9 @@ func update_purchased_items(data) -> void:
 
 func _on_button_purchased_item_pressed() -> void:
 	if singleton:
-		#print(singleton.request("purchasedProducts", {}))
-		print(singleton.request("entitlements", {}))
+		print(singleton.request("transactionCurrentEntitlements", {}))
+
+
+func _on_button_transaction_history_pressed() -> void:
+	if singleton:
+		print(singleton.request("transactionAll", {}))
