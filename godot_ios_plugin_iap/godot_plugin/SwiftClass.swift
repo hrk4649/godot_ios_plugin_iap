@@ -251,7 +251,7 @@ import StoreKit
         let json = try? JSONSerialization.jsonObject(
             with: transaction.jsonRepresentation, options: [])
         
-        var entitlement : [String:Any] = json as? [String:Any] ?? [:]
+        var result : [String:Any] = json as? [String:Any] ?? [:]
 
 //        var entitlement = [
 //            "id":transaction.id,
@@ -296,10 +296,10 @@ import StoreKit
 //        ] as [String : Any]
         
         if error != nil {
-            entitlement["error"] = error!.localizedDescription
+            result["error"] = error!.localizedDescription
         }
         
-        return entitlement
+        return result
     }
     
     static func convertToPurchaseResponse(_ transaction:Transaction) -> [String:Any] {
@@ -313,22 +313,29 @@ import StoreKit
         return resultData
     }
     
+    static func convertTransactions(_ transactions:Transaction.Transactions) async -> [[String:Any]] {
+        var results: [[String:Any]] = []
+        for await verificationResult in transactions {
+            switch verificationResult {
+            case .verified(let transaction):
+                let converted:[String:Any] = convertTransaction(transaction: transaction, error: nil)
+                results.append(converted)
+                
+                break
+            case .unverified(let transaction, let verificationError):
+                let converted:[String:Any] = convertTransaction(transaction: transaction, error: verificationError)
+                results.append(converted)
+                break
+            }
+        }
+        return results
+    }
+    
     static func requestEntitlements() -> Int {
         Task {
-            var entitlements: [[String:Any]] = []
-            for await verificationResult in Transaction.currentEntitlements {
-                switch verificationResult {
-                case .verified(let transaction):
-                    let entitlement:[String:Any] = convertTransaction(transaction: transaction, error: nil)
-                    entitlements.append(entitlement)
-                    
-                    break
-                case .unverified(let transaction, let verificationError):
-                    let entitlement:[String:Any] = convertTransaction(transaction: transaction, error: verificationError)
-                    entitlements.append(entitlement)
-                    break
-                }
-            }
+            var entitlements: [[String:Any]] = await convertTransactions(
+                Transaction.currentEntitlements
+            )
             print("requestEntitlements: entitlements: \(entitlements)")
             let resultData = [
                 "request":"entitlements",
