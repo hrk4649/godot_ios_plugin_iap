@@ -7,7 +7,7 @@ import StoreKit
     static let shared = SwiftClass()
     
     var callback: ((String, [String: Any]) -> Void)?
-
+    
     private var updateTask:Task<Void, Never>? = nil
     
     override init() {
@@ -50,6 +50,8 @@ import StoreKit
             return requestTransactionCurrentEntitlements()
         case "transactionAll":
             return requestTransactionAll()
+        case "proceedUnfinishedTransactions":
+            return requestProceedUnfinishedTransactions()
         default:
             return 1
         }
@@ -91,12 +93,12 @@ import StoreKit
                 "displayPrice": product.displayPrice,
                 "isFamilyShareable": product.isFamilyShareable
             ]
-
-//            let json = try? JSONSerialization.jsonObject(
-//                with: product.jsonRepresentation, options: [])
-//            
-//            var map : [String:Any] = json as? [String:Any] ?? [:]
-//            return map
+            
+            //            let json = try? JSONSerialization.jsonObject(
+            //                with: product.jsonRepresentation, options: [])
+            //
+            //            var map : [String:Any] = json as? [String:Any] ?? [:]
+            //            return map
         }
     }
     
@@ -254,48 +256,48 @@ import StoreKit
             with: transaction.jsonRepresentation, options: [])
         
         var result : [String:Any] = json as? [String:Any] ?? [:]
-
-//        var entitlement = [
-//            "id":transaction.id,
-//            "originalID":transaction.originalID,
-//            "webOrderLineItemID":transaction.webOrderLineItemID ?? "",
-//            "productId":transaction.productID,
-//            "subscriptionGroupID":transaction.subscriptionGroupID ?? "",
-//            "purchaseDate":dateToString(transaction.purchaseDate),
-//            "originalPurchaseDate":dateToString(transaction.purchaseDate),
-//            "expirationDate":dateToString(transaction.expirationDate),
-//            "purchasedQuantity":transaction.purchasedQuantity,
-//            "isUpgraded":transaction.isUpgraded,
-//            // offer 17.2
-//            //   vs
-//            // offerType,
-//            // offerID,
-//            // offerPaymentModeStringRepresentation
-//            // offerPeriodStringRepresentation
-//            "revocationDate":dateToString(transaction.revocationDate),
-//            "revocationReason":transaction.revocationReason?.rawValue ?? "",
-//            "productType":transaction.productType,
-//            "appAccountToken":transaction.appAccountToken ?? "",
-//            // environment 16.0
-//            //   vs
-//            // environmentStringRepresentation
-//            // reason 17.0
-//            //   vs
-//            // reasonStringRepresentation
-//            // storefront 17.0
-//            //   vs
-//            // storefrontCountryCode
-//            // price 15.0
-//            // currency 16.0
-//            //   vs
-//            // currencyCode
-//            "appTransactionID":transaction.appTransactionID,
-//            // deviceVerification
-//            // deviceVerificationNonce
-//            "ownershipType":transaction.ownershipType.rawValue,
-//            "signedDate":dateToString(transaction.signedDate),
-//            // advancedCommerceInfo 18.4
-//        ] as [String : Any]
+        
+        //        var entitlement = [
+        //            "id":transaction.id,
+        //            "originalID":transaction.originalID,
+        //            "webOrderLineItemID":transaction.webOrderLineItemID ?? "",
+        //            "productId":transaction.productID,
+        //            "subscriptionGroupID":transaction.subscriptionGroupID ?? "",
+        //            "purchaseDate":dateToString(transaction.purchaseDate),
+        //            "originalPurchaseDate":dateToString(transaction.purchaseDate),
+        //            "expirationDate":dateToString(transaction.expirationDate),
+        //            "purchasedQuantity":transaction.purchasedQuantity,
+        //            "isUpgraded":transaction.isUpgraded,
+        //            // offer 17.2
+        //            //   vs
+        //            // offerType,
+        //            // offerID,
+        //            // offerPaymentModeStringRepresentation
+        //            // offerPeriodStringRepresentation
+        //            "revocationDate":dateToString(transaction.revocationDate),
+        //            "revocationReason":transaction.revocationReason?.rawValue ?? "",
+        //            "productType":transaction.productType,
+        //            "appAccountToken":transaction.appAccountToken ?? "",
+        //            // environment 16.0
+        //            //   vs
+        //            // environmentStringRepresentation
+        //            // reason 17.0
+        //            //   vs
+        //            // reasonStringRepresentation
+        //            // storefront 17.0
+        //            //   vs
+        //            // storefrontCountryCode
+        //            // price 15.0
+        //            // currency 16.0
+        //            //   vs
+        //            // currencyCode
+        //            "appTransactionID":transaction.appTransactionID,
+        //            // deviceVerification
+        //            // deviceVerificationNonce
+        //            "ownershipType":transaction.ownershipType.rawValue,
+        //            "signedDate":dateToString(transaction.signedDate),
+        //            // advancedCommerceInfo 18.4
+        //        ] as [String : Any]
         
         if error != nil {
             result["error"] = error!.localizedDescription
@@ -378,6 +380,18 @@ import StoreKit
                 break
             }
         }
+    }
+    
+    static func requestProceedUnfinishedTransactions() -> Int {
+        Task {
+            await proceedUnfinishedTransactions()
+            let resultData = [
+                "request":"proceedUnfinishedTransactions",
+                "result":"success"
+            ]
+            response(a1: "proceedUnfinishedTransactions", a2: resultData)
+        }
+        return 0
     }
 }
 

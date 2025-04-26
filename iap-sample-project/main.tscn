@@ -50,5 +50,11 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 32
 text = "Transaction History"
 
+[node name="ButtonProceedUnfinished" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Proceed Unfinished Transactions"
+
 [connection signal="pressed" from="VBoxContainer/ButtonPurchasedItem" to="." method="_on_button_purchased_item_pressed"]
 [connection signal="pressed" from="VBoxContainer/ButtonTransactionHistory" to="." method="_on_button_transaction_history_pressed"]
+[connection signal="pressed" from="VBoxContainer/ButtonProceedUnfinished" to="." method="_on_button_proceed_unfinished_pressed"]

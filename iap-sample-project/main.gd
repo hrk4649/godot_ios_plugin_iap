@@ -83,3 +83,7 @@ func _on_button_purchased_item_pressed() -> void:
 func _on_button_transaction_history_pressed() -> void:
 	if singleton:
 		print(singleton.request("transactionAll", {}))
+
+func _on_button_proceed_unfinished_pressed() -> void:
+	if singleton:
+		print(singleton.request("proceedUnfinishedTransactions", {}))
