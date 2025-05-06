@@ -2,48 +2,47 @@ import Foundation
 import StoreKit
 
 @available(iOS 15.0, *)
-@objcMembers public class SwiftClass : NSObject
-{
+@objcMembers public class SwiftClass: NSObject {
     static let shared = SwiftClass()
-    
+
     var callback: ((String, [String: Any]) -> Void)?
-    
-    private var updateTask:Task<Void, Never>? = nil
-    
+
+    private var updateTask: Task<Void, Never>? = nil
+
     override init() {
         super.init()
         updateTask = createUpdateTask()
     }
-    
+
     deinit {
         updateTask?.cancel()
         updateTask = nil
     }
-    
+
     private func createUpdateTask() -> Task<Void, Never> {
         Task(priority: .background) {
             print("createUpdateTask")
-            for await verificationResult in Transaction.updates{
+            for await verificationResult in Transaction.updates {
                 // Approved pending transaction comes here
                 print("updateTask: \(verificationResult)")
                 await SwiftClass.proceedUnfinishedTransactions()
             }
         }
     }
-    
-    static func response(a1: String, a2: Dictionary<String, Any>) {
+
+    static func response(a1: String, a2: [String: Any]) {
         shared.callback?(a1, a2)
     }
-    
-    static func request(a1: NSString, a2: NSDictionary)  -> Int {
-        
+
+    static func request(a1: NSString, a2: NSDictionary) -> Int {
+
         switch a1 {
         case "dummy":
             return requestDummy()
         case "products":
-            return requestProducts(data:a2)
+            return requestProducts(data: a2)
         case "purchase":
-            return requestPurchase(data:a2)
+            return requestPurchase(data: a2)
         case "purchasedProducts":
             return requestPurchasedProducts()
         case "transactionCurrentEntitlements":
@@ -56,23 +55,23 @@ import StoreKit
             return 1
         }
     }
-    
+
     static func requestDummy() -> Int {
         Task {
             do {
                 print("requestDummy")
-                
+
                 try await Task.sleep(nanoseconds: 3 * 1000 * 1000 * 1000)
                 let data = [
                     "dummyString": "dummy",
                     "dummyInt": 123,
                     "dummyFloat": 123.456,
                     "dummyArray1": ["a", "b", "c"],
-                    "dummyArray2":[
-                        ["a":"str"],
-                        ["b":1],
-                        ["c":0.5],
-                    ]
+                    "dummyArray2": [
+                        ["a": "str"],
+                        ["b": 1],
+                        ["c": 0.5],
+                    ],
                 ]
                 response(a1: "dummy", a2: data)
             } catch {
@@ -81,7 +80,7 @@ import StoreKit
         }
         return 0
     }
-    
+
     static func convertProducts(_ products: [Product]) -> [[String: Any]] {
         return products.map { product in
             return [
@@ -89,11 +88,11 @@ import StoreKit
                 "type": product.type.rawValue,
                 "displayName": product.displayName,
                 "description": product.description,
-                "price": product.price,
+                "price": String(describing:product.price),
                 "displayPrice": product.displayPrice,
-                "isFamilyShareable": product.isFamilyShareable
+                "isFamilyShareable": String(describing:product.isFamilyShareable),
             ]
-            
+
             //            let json = try? JSONSerialization.jsonObject(
             //                with: product.jsonRepresentation, options: [])
             //
@@ -101,10 +100,10 @@ import StoreKit
             //            return map
         }
     }
-    
-    static func requestProducts(data:NSDictionary) -> Int {
+
+    static func requestProducts(data: NSDictionary) -> Int {
         print("requestProducts")
-        if data.object(forKey:"product_ids") == nil {
+        if data.object(forKey: "product_ids") == nil {
             print("requestProducts: no 'product_ids'")
             return 1
         }
@@ -116,38 +115,38 @@ import StoreKit
         print("requestProducts:productIds:\(String(describing: productIds))")
         Task {
             do {
-                let products = try await Product.products(for:productIds!)
+                let products = try await Product.products(for: productIds!)
                 print("requestProducts:products:\(products)")
-                
+
                 let converted = convertProducts(products)
-                let resultData = ["products":converted]
-                
+                let resultData = ["products": converted]
+
                 response(a1: "products", a2: resultData)
             } catch {
                 // send error as signal
                 let errorData = [
-                    "request":"products",
-                    "error":error.localizedDescription
+                    "request": "products",
+                    "error": error.localizedDescription,
                 ]
                 response(a1: "error", a2: errorData)
             }
         }
         return 0
     }
-    
-    static func convertPurchaseMap(transaction:Transaction) -> [String:Any] {
+
+    static func convertPurchaseMap(transaction: Transaction) -> [String: Any] {
         return [
-            "request":"purchase",
-            "original_id": transaction.originalID,
+            "request": "purchase",
+            "original_id": String(describing: transaction.originalID),
             "web_order_line_item_id": transaction.webOrderLineItemID ?? "",
             "product_id": transaction.productID,
-            "result":"success"
+            "result": "success",
         ]
     }
-    
-    static func requestPurchase(data:NSDictionary) -> Int {
+
+    static func requestPurchase(data: NSDictionary) -> Int {
         print("requestPurchase")
-        if data.object(forKey:"product_id") == nil {
+        if data.object(forKey: "product_id") == nil {
             print("requestPurchase: no 'product_id'")
             return 1
         }
@@ -156,20 +155,21 @@ import StoreKit
             print("requestPurchase: product_id is not string")
             return 1
         }
-        
+
         Task {
             do {
-                let products = try await Product.products(for:[productId!])
+                let products = try await Product.products(for: [productId!])
                 print("requestPurchase:products:\(products)")
                 if products.count == 0 {
                     let errorData = [
-                        "request":"purchase",
-                        "error":"no product_id:\(productId!)"
+                        "request": "purchase",
+                        "error": "no product_id:\(productId!)",
                     ]
                     response(a1: "error", a2: errorData)
                 }
                 let product = products[0]
-                let result:Product.PurchaseResult = try await product.purchase()
+                let result: Product.PurchaseResult =
+                    try await product.purchase()
                 print("requestPurchase:purchase:\(result)")
                 switch result {
                 case .success(.verified(let transaction)):
@@ -177,36 +177,36 @@ import StoreKit
                     let resultData = convertToPurchaseResponse(transaction)
                     response(a1: "purchase", a2: resultData)
                     break
-                case .success(.unverified(_, let error)):
+                case .success(.unverified(let transaction, let error)):
                     let resultData = [
-                        "request":"purchase",
+                        "request": "purchase",
                         "product_id": productId!,
-                        "result":"unverified",
-                        "error":error.localizedDescription
+                        "result": "unverified",
+                        "error": error.localizedDescription,
                     ]
                     response(a1: "purchase", a2: resultData)
                     break
                 case .pending:
                     let resultData = [
-                        "request":"purchase",
+                        "request": "purchase",
                         "product_id": productId!,
-                        "result":"pending"
+                        "result": "pending",
                     ]
                     response(a1: "purchase", a2: resultData)
                     break
                 case .userCancelled:
                     let resultData = [
-                        "request":"purchase",
+                        "request": "purchase",
                         "product_id": productId!,
-                        "result":"userCancelled"
+                        "result": "userCancelled",
                     ]
                     response(a1: "purchase", a2: resultData)
                     break
                 @unknown default:
                     let resultData = [
-                        "request":"purchase",
+                        "request": "purchase",
                         "product_id": productId!,
-                        "result":"unknown"
+                        "result": "unknown",
                     ]
                     response(a1: "purchase", a2: resultData)
                     break
@@ -214,15 +214,15 @@ import StoreKit
             } catch {
                 // send error as signal
                 let errorData = [
-                    "request":"purchase",
-                    "error":error.localizedDescription
+                    "request": "purchase",
+                    "error": error.localizedDescription,
                 ]
                 response(a1: "error", a2: errorData)
             }
         }
         return 0
     }
-    
+
     static func requestPurchasedProducts() -> Int {
         Task {
             var purchasedProductIDs: Set<String> = []
@@ -236,138 +236,155 @@ import StoreKit
             let productIDs: [String] = Array(purchasedProductIDs)
             print("requestPurchasedProducts: productIDs: \(productIDs)")
             let resultData = [
-                "request":"purchasedProducts",
+                "request": "purchasedProducts",
                 "product_ids": productIDs,
-                "result":"success"
+                "result": "success",
             ]
             response(a1: "purchasedProducts", a2: resultData)
         }
         return 0
     }
-    
-    static func dateToString(_ date:Date?)->String{
+
+    static func dateToString(_ date: Date?) -> String {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
         return if date == nil { "" } else { dateFormatter.string(from: date!) }
     }
-    
-    static func convertTransaction(transaction:Transaction, error:Error?) ->[String:Any] {
-        let json = try? JSONSerialization.jsonObject(
-            with: transaction.jsonRepresentation, options: [])
-        
-        var result : [String:Any] = json as? [String:Any] ?? [:]
-        
-        //        var entitlement = [
-        //            "id":transaction.id,
-        //            "originalID":transaction.originalID,
-        //            "webOrderLineItemID":transaction.webOrderLineItemID ?? "",
-        //            "productId":transaction.productID,
-        //            "subscriptionGroupID":transaction.subscriptionGroupID ?? "",
-        //            "purchaseDate":dateToString(transaction.purchaseDate),
-        //            "originalPurchaseDate":dateToString(transaction.purchaseDate),
-        //            "expirationDate":dateToString(transaction.expirationDate),
-        //            "purchasedQuantity":transaction.purchasedQuantity,
-        //            "isUpgraded":transaction.isUpgraded,
-        //            // offer 17.2
-        //            //   vs
-        //            // offerType,
-        //            // offerID,
-        //            // offerPaymentModeStringRepresentation
-        //            // offerPeriodStringRepresentation
-        //            "revocationDate":dateToString(transaction.revocationDate),
-        //            "revocationReason":transaction.revocationReason?.rawValue ?? "",
-        //            "productType":transaction.productType,
-        //            "appAccountToken":transaction.appAccountToken ?? "",
-        //            // environment 16.0
-        //            //   vs
-        //            // environmentStringRepresentation
-        //            // reason 17.0
-        //            //   vs
-        //            // reasonStringRepresentation
-        //            // storefront 17.0
-        //            //   vs
-        //            // storefrontCountryCode
-        //            // price 15.0
-        //            // currency 16.0
-        //            //   vs
-        //            // currencyCode
-        //            "appTransactionID":transaction.appTransactionID,
-        //            // deviceVerification
-        //            // deviceVerificationNonce
-        //            "ownershipType":transaction.ownershipType.rawValue,
-        //            "signedDate":dateToString(transaction.signedDate),
-        //            // advancedCommerceInfo 18.4
-        //        ] as [String : Any]
-        
+
+    static func convertTransaction(transaction: Transaction, error: Error?)
+        -> [String: Any]
+    {
+        var result: [String: Any] =
+            [
+                "id": String(describing:transaction.id),
+                "originalID": String(describing:transaction.originalID),
+                "webOrderLineItemID": transaction.webOrderLineItemID ?? "",
+                "productId": transaction.productID,
+                "subscriptionGroupID": transaction.subscriptionGroupID ?? "",
+                "purchaseDate": dateToString(transaction.purchaseDate),
+                "originalPurchaseDate": dateToString(transaction.purchaseDate),
+                "expirationDate": dateToString(transaction.expirationDate),
+                "purchasedQuantity": String(describing:transaction.purchasedQuantity),
+                "isUpgraded": String(describing:transaction.isUpgraded),
+                // offer 17.2
+                //   vs
+                // offerType,
+                // offerID,
+                // offerPaymentModeStringRepresentation
+                // offerPeriodStringRepresentation
+                "revocationDate": dateToString(transaction.revocationDate),
+                "revocationReason": transaction.revocationReason?.rawValue
+                    ?? "",
+                "productType": transaction.productType.rawValue,
+                "appAccountToken": transaction.appAccountToken ?? "",
+                // environment 16.0
+                //   vs
+                // environmentStringRepresentation
+                // reason 17.0
+                //   vs
+                // reasonStringRepresentation
+                // storefront 17.0
+                //   vs
+                // storefrontCountryCode
+                // price 15.0
+                // currency 16.0
+                //   vs
+                // currencyCode
+                "appTransactionID": transaction.appTransactionID,
+                // deviceVerification
+                // deviceVerificationNonce
+                "ownershipType": transaction.ownershipType.rawValue,
+                "signedDate": dateToString(transaction.signedDate),
+                // advancedCommerceInfo 18.4
+                "json": String(
+                    data: transaction.jsonRepresentation,
+                    encoding: .utf8
+                ) ?? "",
+            ] as [String: Any]
+
         if error != nil {
             result["error"] = error!.localizedDescription
         }
-        
+
         return result
     }
-    
-    static func convertToPurchaseResponse(_ transaction:Transaction) -> [String:Any] {
-        let resultData = [
-            "request":"purchase",
-            "product_id": transaction.productID,
-            "quantity": transaction.purchasedQuantity,
-            "product_type": transaction.productType.rawValue,
-            "result":"success"
-        ] as [String : Any]
+
+    static func convertToPurchaseResponse(_ transaction: Transaction)
+        -> [String: Any]
+    {
+        let resultData =
+            [
+                "request": "purchase",
+                "product_id": transaction.productID,
+                "quantity": String(describing:transaction.purchasedQuantity),
+                "product_type": transaction.productType.rawValue,
+                "result": "success",
+                "json": String(data:transaction.jsonRepresentation, encoding: .utf8) ?? ""
+            ] as [String: Any]
         return resultData
     }
-    
-    static func convertTransactions(_ transactions:Transaction.Transactions) async -> [[String:Any]] {
-        var results: [[String:Any]] = []
+
+    static func convertTransactions(_ transactions: Transaction.Transactions)
+        async -> [[String: Any]]
+    {
+        var results: [[String: Any]] = []
         for await verificationResult in transactions {
             switch verificationResult {
             case .verified(let transaction):
-                let converted:[String:Any] = convertTransaction(transaction: transaction, error: nil)
+                let converted: [String: Any] = convertTransaction(
+                    transaction: transaction,
+                    error: nil
+                )
                 results.append(converted)
-                
+
                 break
             case .unverified(let transaction, let verificationError):
-                let converted:[String:Any] = convertTransaction(transaction: transaction, error: verificationError)
+                let converted: [String: Any] = convertTransaction(
+                    transaction: transaction,
+                    error: verificationError
+                )
                 results.append(converted)
                 break
             }
         }
         return results
     }
-    
+
     static func requestTransactionCurrentEntitlements() -> Int {
         Task {
-            var transactions: [[String:Any]] = await convertTransactions(
+            let transactions: [[String: Any]] = await convertTransactions(
                 Transaction.currentEntitlements
             )
-            print("requestTransactionCurrentEntitlements: transactions: \(transactions)")
+            print(
+                "requestTransactionCurrentEntitlements: transactions: \(transactions)"
+            )
             let resultData = [
-                "request":"transactionCurrentEntitlements",
+                "request": "transactionCurrentEntitlements",
                 "transactions": transactions,
-                "result":"success"
+                "result": "success",
             ]
             response(a1: "transactionCurrentEntitlements", a2: resultData)
         }
         return 0
     }
-    
+
     static func requestTransactionAll() -> Int {
         Task {
-            var transactions: [[String:Any]] = await convertTransactions(
+            let transactions: [[String: Any]] = await convertTransactions(
                 Transaction.all
             )
             print("requestTransactionAll: transactions: \(transactions)")
             let resultData = [
-                "request":"transactionAll",
+                "request": "transactionAll",
                 "transactions": transactions,
-                "result":"success"
+                "result": "success",
             ]
             response(a1: "transactionAll", a2: resultData)
         }
         return 0
     }
-    
-    static func proceedUnfinishedTransactions() async -> Void {
+
+    static func proceedUnfinishedTransactions() async {
         for await verificationResult in Transaction.unfinished {
             switch verificationResult {
             case .verified(let transaction):
@@ -376,22 +393,23 @@ import StoreKit
                 response(a1: "purchase", a2: resultData)
                 break
             case .unverified(let transaction, let verificationError):
-                print("proceedUnfinishedTransactions: unverified transaction \(transaction), error \(verificationError)")
+                print(
+                    "proceedUnfinishedTransactions: unverified transaction \(transaction), error \(verificationError)"
+                )
                 break
             }
         }
     }
-    
+
     static func requestProceedUnfinishedTransactions() -> Int {
         Task {
             await proceedUnfinishedTransactions()
             let resultData = [
-                "request":"proceedUnfinishedTransactions",
-                "result":"success"
+                "request": "proceedUnfinishedTransactions",
+                "result": "success",
             ]
             response(a1: "proceedUnfinishedTransactions", a2: resultData)
         }
         return 0
     }
 }
-
