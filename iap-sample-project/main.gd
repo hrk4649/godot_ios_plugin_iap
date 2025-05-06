@@ -25,6 +25,12 @@ func _ready() -> void:
 
 	# print(singleton.request("dummy", {}))
 
+	call_products()
+
+	# print(singleton.request("purchasedProducts", {}))
+	print(singleton.request("transactionCurrentEntitlements", {}))
+
+func call_products() -> void:
 	var product_data = {
 		"productIDs":[
 			"dummy_consumable001", 
@@ -35,15 +41,20 @@ func _ready() -> void:
 			]
 		}
 	print(singleton.request("products", product_data))
-	print(singleton.request("purchasedProducts", {}))
 
 func _receive_response(response_name:String, data:Dictionary) -> void:
 	print("response:%s data:%s" % [response_name, data])
 	match response_name:
 		"products":
-			call_deferred("update_purchase_items", data)
+			if data["result"] == "success":
+				call_deferred("update_purchase_items", data)
+			else:
+				# retry request
+				await get_tree().create_timer(5.0).timeout
+				call_deferred("call_products")
 		"purchase":
-			print(singleton.request("purchasedProducts", {}))
+			# print(singleton.request("purchasedProducts", {}))
+			print(singleton.request("transactionCurrentEntitlements", {}))
 		"purchasedProducts":
 			call_deferred("update_purchased_items", data)
 		"transactionCurrentEntitlements":
