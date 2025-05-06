@@ -84,7 +84,7 @@ import StoreKit
     static func convertProducts(_ products: [Product]) -> [[String: Any]] {
         return products.map { product in
             return [
-                "product_id": product.id,
+                "id": product.id,
                 "type": product.type.rawValue,
                 "displayName": product.displayName,
                 "description": product.description,
@@ -103,19 +103,19 @@ import StoreKit
 
     static func requestProducts(data: NSDictionary) -> Int {
         print("requestProducts")
-        if data.object(forKey: "product_ids") == nil {
-            print("requestProducts: no 'product_ids'")
+        if data.object(forKey: "productIDs") == nil {
+            print("requestProducts: no 'productIDs'")
             return 1
         }
-        let productIds = data["product_ids"] as? [String]
-        if productIds == nil {
-            print("requestProducts: failed to get productIds")
+        let productIDs = data["productIDs"] as? [String]
+        if productIDs == nil {
+            print("requestProducts: failed to get productIDs")
             return 1
         }
-        print("requestProducts:productIds:\(String(describing: productIds))")
+        print("requestProducts:productIds:\(String(describing: productIDs))")
         Task {
             do {
-                let products = try await Product.products(for: productIds!)
+                let products = try await Product.products(for: productIDs!)
                 print("requestProducts:products:\(products)")
 
                 let converted = convertProducts(products)
@@ -137,33 +137,33 @@ import StoreKit
     static func convertPurchaseMap(transaction: Transaction) -> [String: Any] {
         return [
             "request": "purchase",
-            "original_id": String(describing: transaction.originalID),
-            "web_order_line_item_id": transaction.webOrderLineItemID ?? "",
-            "product_id": transaction.productID,
+            "originalID": String(describing: transaction.originalID),
+            "webOrderLineItemID": transaction.webOrderLineItemID ?? "",
+            "productID": transaction.productID,
             "result": "success",
         ]
     }
 
     static func requestPurchase(data: NSDictionary) -> Int {
         print("requestPurchase")
-        if data.object(forKey: "product_id") == nil {
-            print("requestPurchase: no 'product_id'")
+        if data.object(forKey: "productID") == nil {
+            print("requestPurchase: no 'productID'")
             return 1
         }
-        let productId = data["product_id"] as? String
-        if productId == nil {
-            print("requestPurchase: product_id is not string")
+        let productID = data["productID"] as? String
+        if productID == nil {
+            print("requestPurchase: productID is not string")
             return 1
         }
 
         Task {
             do {
-                let products = try await Product.products(for: [productId!])
+                let products = try await Product.products(for: [productID!])
                 print("requestPurchase:products:\(products)")
                 if products.count == 0 {
                     let errorData = [
                         "request": "purchase",
-                        "error": "no product_id:\(productId!)",
+                        "error": "no productID:\(productID!)",
                     ]
                     response(a1: "error", a2: errorData)
                 }
@@ -180,7 +180,7 @@ import StoreKit
                 case .success(.unverified(let transaction, let error)):
                     let resultData = [
                         "request": "purchase",
-                        "product_id": productId!,
+                        "productID": productID!,
                         "result": "unverified",
                         "error": error.localizedDescription,
                     ]
@@ -189,7 +189,7 @@ import StoreKit
                 case .pending:
                     let resultData = [
                         "request": "purchase",
-                        "product_id": productId!,
+                        "productID": productID!,
                         "result": "pending",
                     ]
                     response(a1: "purchase", a2: resultData)
@@ -197,7 +197,7 @@ import StoreKit
                 case .userCancelled:
                     let resultData = [
                         "request": "purchase",
-                        "product_id": productId!,
+                        "productID": productID!,
                         "result": "userCancelled",
                     ]
                     response(a1: "purchase", a2: resultData)
@@ -205,7 +205,7 @@ import StoreKit
                 @unknown default:
                     let resultData = [
                         "request": "purchase",
-                        "product_id": productId!,
+                        "productID": productID!,
                         "result": "unknown",
                     ]
                     response(a1: "purchase", a2: resultData)
@@ -237,7 +237,7 @@ import StoreKit
             print("requestPurchasedProducts: productIDs: \(productIDs)")
             let resultData = [
                 "request": "purchasedProducts",
-                "product_ids": productIDs,
+                "productIDs": productIDs,
                 "result": "success",
             ]
             response(a1: "purchasedProducts", a2: resultData)
@@ -259,7 +259,7 @@ import StoreKit
                 "id": String(describing:transaction.id),
                 "originalID": String(describing:transaction.originalID),
                 "webOrderLineItemID": transaction.webOrderLineItemID ?? "",
-                "productId": transaction.productID,
+                "productID": transaction.productID,
                 "subscriptionGroupID": transaction.subscriptionGroupID ?? "",
                 "purchaseDate": dateToString(transaction.purchaseDate),
                 "originalPurchaseDate": dateToString(transaction.purchaseDate),
@@ -315,9 +315,9 @@ import StoreKit
         let resultData =
             [
                 "request": "purchase",
-                "product_id": transaction.productID,
-                "quantity": String(describing:transaction.purchasedQuantity),
-                "product_type": transaction.productType.rawValue,
+                "productID": transaction.productID,
+                "purchasedQuantity": String(describing:transaction.purchasedQuantity),
+                "productType": transaction.productType.rawValue,
                 "result": "success",
                 "json": String(data:transaction.jsonRepresentation, encoding: .utf8) ?? ""
             ] as [String: Any]
