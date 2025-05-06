@@ -26,7 +26,7 @@ func _ready() -> void:
 	# print(singleton.request("dummy", {}))
 
 	var product_data = {
-		"product_ids":[
+		"productIDs":[
 			"dummy_consumable001", 
 			"dummy_non_consumable001",
 			"okinawa.flat_e.iap_demo_project.sg1.premium",
@@ -46,6 +46,8 @@ func _receive_response(response_name:String, data:Dictionary) -> void:
 			print(singleton.request("purchasedProducts", {}))
 		"purchasedProducts":
 			call_deferred("update_purchased_items", data)
+		"transactionCurrentEntitlements":
+			call_deferred("update_purchased_items2", data)
 
 func update_purchase_items(data) -> void:
 	for child in container_purchase_items.get_children():
@@ -55,25 +57,38 @@ func update_purchase_items(data) -> void:
 	for product in products:
 		var button = ItemButton.instantiate()
 		container_purchase_items.add_child(button)
-		button.text = "ITEM:%s PRICE:%s TYPE:%s" % [
+		button.text = "ID:%s ITEM:%s PRICE:%s TYPE:%s" % [
+			product["id"], 
 			product["displayName"], 
 			product["displayPrice"],
 			product["type"]
 		]
-		button.pressed.connect(purchase_item.bind(product["product_id"]))
+		button.pressed.connect(purchase_item.bind(product["id"]))
 
 func purchase_item(product_id) -> void:
 	print("purchase_item:%s" % product_id)
-	singleton.request("purchase", {"product_id":product_id})
+	singleton.request("purchase", {"productID":product_id})
 
 func update_purchased_items(data) -> void:
 	for child in container_purchased_items.get_children():
 		container_purchased_items.remove_child(child)
-	var product_ids = data["product_ids"]
+	var product_ids = data["productIDs"]
 	for product_id in product_ids:
 		var label = ItemLabel.instantiate()
 		container_purchased_items.add_child(label)
 		label.text = product_id
+
+func update_purchased_items2(data) -> void:
+	for child in container_purchased_items.get_children():
+		container_purchased_items.remove_child(child)
+	var transactions = data["transactions"]
+	for transaction in transactions:
+		var label = ItemLabel.instantiate()
+		container_purchased_items.add_child(label)
+		label.text = "PRODUCT_ID:%s EXPIRES_DATE:%s" % [
+			transaction["productID"], 
+			transaction["expiresDate"]
+		]
 
 func _on_button_purchased_item_pressed() -> void:
 	if singleton:
