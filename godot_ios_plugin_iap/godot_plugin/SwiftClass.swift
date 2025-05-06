@@ -119,7 +119,11 @@ import StoreKit
                 print("requestProducts:products:\(products)")
 
                 let converted = convertProducts(products)
-                let resultData = ["products": converted]
+                let resultData = [
+                    "request": "products",
+                    "result": "success",
+                    "products": converted
+                ]
 
                 response(a1: "products", a2: resultData)
             } catch {
