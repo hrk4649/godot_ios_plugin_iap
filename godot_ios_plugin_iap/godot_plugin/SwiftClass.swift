@@ -88,16 +88,16 @@ import StoreKit
                 "type": product.type.rawValue,
                 "displayName": product.displayName,
                 "description": product.description,
-                "price": String(describing:product.price),
+                "price": String(describing: product.price),
                 "displayPrice": product.displayPrice,
-                "isFamilyShareable": String(describing:product.isFamilyShareable),
+                "isFamilyShareable": String(
+                    describing: product.isFamilyShareable
+                ),
+                "json": String(
+                    data: product.jsonRepresentation,
+                    encoding: .utf8
+                ) ?? "",
             ]
-
-            //            let json = try? JSONSerialization.jsonObject(
-            //                with: product.jsonRepresentation, options: [])
-            //
-            //            var map : [String:Any] = json as? [String:Any] ?? [:]
-            //            return map
         }
     }
 
@@ -112,7 +112,7 @@ import StoreKit
             print("requestProducts: failed to get productIDs")
             return 1
         }
-        print("requestProducts:productIds:\(String(describing: productIDs))")
+        print("requestProducts:productIDs:\(String(describing: productIDs))")
         Task {
             do {
                 let products = try await Product.products(for: productIDs!)
@@ -256,16 +256,18 @@ import StoreKit
     {
         var result: [String: Any] =
             [
-                "id": String(describing:transaction.id),
-                "originalID": String(describing:transaction.originalID),
+                "id": String(describing: transaction.id),
+                "originalID": String(describing: transaction.originalID),
                 "webOrderLineItemID": transaction.webOrderLineItemID ?? "",
                 "productID": transaction.productID,
                 "subscriptionGroupID": transaction.subscriptionGroupID ?? "",
                 "purchaseDate": dateToString(transaction.purchaseDate),
                 "originalPurchaseDate": dateToString(transaction.purchaseDate),
                 "expirationDate": dateToString(transaction.expirationDate),
-                "purchasedQuantity": String(describing:transaction.purchasedQuantity),
-                "isUpgraded": String(describing:transaction.isUpgraded),
+                "purchasedQuantity": String(
+                    describing: transaction.purchasedQuantity
+                ),
+                "isUpgraded": String(describing: transaction.isUpgraded),
                 // offer 17.2
                 //   vs
                 // offerType,
@@ -316,10 +318,15 @@ import StoreKit
             [
                 "request": "purchase",
                 "productID": transaction.productID,
-                "purchasedQuantity": String(describing:transaction.purchasedQuantity),
+                "purchasedQuantity": String(
+                    describing: transaction.purchasedQuantity
+                ),
                 "productType": transaction.productType.rawValue,
                 "result": "success",
-                "json": String(data:transaction.jsonRepresentation, encoding: .utf8) ?? ""
+                "json": String(
+                    data: transaction.jsonRepresentation,
+                    encoding: .utf8
+                ) ?? "",
             ] as [String: Any]
         return resultData
     }
