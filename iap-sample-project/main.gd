@@ -85,9 +85,9 @@ func update_purchased_items2(data) -> void:
 	for transaction in transactions:
 		var label = ItemLabel.instantiate()
 		container_purchased_items.add_child(label)
-		label.text = "PRODUCT_ID:%s EXPIRES_DATE:%s" % [
+		label.text = "PRODUCT_ID:%s EXPIRATION_DATE:%s" % [
 			transaction["productID"], 
-			transaction["expiresDate"]
+			transaction["expirationDate"]
 		]
 
 func _on_button_purchased_item_pressed() -> void:
