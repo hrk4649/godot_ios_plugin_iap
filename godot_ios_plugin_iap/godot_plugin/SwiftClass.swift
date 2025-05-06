@@ -126,9 +126,10 @@ import StoreKit
                 // send error as signal
                 let errorData = [
                     "request": "products",
+                    "result": "error",
                     "error": error.localizedDescription,
                 ]
-                response(a1: "error", a2: errorData)
+                response(a1: "products", a2: errorData)
             }
         }
         return 0
@@ -163,9 +164,10 @@ import StoreKit
                 if products.count == 0 {
                     let errorData = [
                         "request": "purchase",
+                        "result": "error",
                         "error": "no productID:\(productID!)",
                     ]
-                    response(a1: "error", a2: errorData)
+                    response(a1: "purchase", a2: errorData)
                 }
                 let product = products[0]
                 let result: Product.PurchaseResult =
@@ -215,9 +217,10 @@ import StoreKit
                 // send error as signal
                 let errorData = [
                     "request": "purchase",
+                    "result": "error",
                     "error": error.localizedDescription,
                 ]
-                response(a1: "error", a2: errorData)
+                response(a1: "purchase", a2: errorData)
             }
         }
         return 0
