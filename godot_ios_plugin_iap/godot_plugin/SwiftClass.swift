@@ -11,7 +11,6 @@ import StoreKit
 
     override init() {
         super.init()
-        updateTask = createUpdateTask()
     }
 
     deinit {
@@ -19,9 +18,9 @@ import StoreKit
         updateTask = nil
     }
 
-    private func createUpdateTask() -> Task<Void, Never> {
-        Task(priority: .background) {
-            print("createUpdateTask")
+    private func startUpdateTask() {
+        updateTask = Task(priority: .background) {
+            print("startUpdateTask")
             for await verificationResult in Transaction.updates {
                 // Approved pending transaction comes here
                 print("updateTask: \(verificationResult)")
@@ -39,6 +38,8 @@ import StoreKit
         switch a1 {
         case "dummy":
             return requestDummy()
+        case "startUpdateTask":
+            return requestStartUpdateTask()
         case "products":
             return requestProducts(data: a2)
         case "purchase":
@@ -81,6 +82,16 @@ import StoreKit
         return 0
     }
 
+    static func requestStartUpdateTask() -> Int {
+        print("requestStartUpdateTask")
+        if shared.updateTask != nil {
+            // updateTask has already started
+            return 1
+        }
+        shared.startUpdateTask()
+        return 0
+    }
+    
     static func convertProducts(_ products: [Product]) -> [[String: Any]] {
         return products.map { product in
             return [
