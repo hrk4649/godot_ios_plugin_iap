@@ -17,6 +17,7 @@ func _ready() -> void:
 	print("IOSInAppPurchase is found")
 	singleton = Engine.get_singleton("IOSInAppPurchase")
 	singleton.response.connect(_receive_response)
+	print("startUpdateTask:%s" % singleton.request("startUpdateTask", {}))
 
 	# var data = {
 	#     "message":"hello"
@@ -28,7 +29,8 @@ func _ready() -> void:
 	call_products()
 
 	# print(singleton.request("purchasedProducts", {}))
-	print(singleton.request("transactionCurrentEntitlements", {}))
+	print("transactionCurrentEntitlements:%s" % 
+		singleton.request("transactionCurrentEntitlements", {}))
 
 func call_products() -> void:
 	var product_data = {
@@ -54,7 +56,8 @@ func _receive_response(response_name:String, data:Dictionary) -> void:
 				call_deferred("call_products")
 		"purchase":
 			# print(singleton.request("purchasedProducts", {}))
-			print(singleton.request("transactionCurrentEntitlements", {}))
+			print("transactionCurrentEntitlements:%s" % 
+				singleton.request("transactionCurrentEntitlements", {}))
 		"purchasedProducts":
 			call_deferred("update_purchased_items", data)
 		"transactionCurrentEntitlements":
