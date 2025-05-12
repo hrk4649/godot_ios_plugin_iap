@@ -22,8 +22,10 @@ import StoreKit
         updateTask = Task(priority: .background) {
             print("startUpdateTask")
             for await verificationResult in Transaction.updates {
-                // Approved pending transaction comes here
                 print("updateTask: \(verificationResult)")
+                // The following transactions come here
+                // - Approved pending transaction
+                // - Revoked transaction
                 await SwiftClass.proceedVerificationResult(verificationResult)
             }
         }
@@ -269,6 +271,37 @@ import StoreKit
         return if date == nil { "" } else { dateFormatter.string(from: date!) }
     }
 
+    static func convertToPurchaseResponse(_ transaction: Transaction)
+        -> [String: Any]
+    {
+        let result = if transaction.revocationDate != nil {
+            "revoked"
+        } else {
+            "success"
+        }
+        
+        var resultData =
+            [
+                "request": "purchase",
+                "productID": transaction.productID,
+                "purchasedQuantity": String(
+                    describing: transaction.purchasedQuantity
+                ),
+                "productType": transaction.productType.rawValue,
+                "result": result,
+                "json": String(
+                    data: transaction.jsonRepresentation,
+                    encoding: .utf8
+                ) ?? "",
+            ] as [String: Any]
+        
+        if transaction.revocationDate != nil {
+            resultData["revocationDate"] = dateToString(transaction.revocationDate!)
+        }
+        
+        return resultData
+    }
+    
     static func convertTransaction(transaction: Transaction, error: Error?)
         -> [String: Any]
     {
@@ -327,37 +360,6 @@ import StoreKit
         }
 
         return result
-    }
-
-    static func convertToPurchaseResponse(_ transaction: Transaction)
-        -> [String: Any]
-    {
-        let result = if transaction.revocationDate != nil {
-            "revoked"
-        } else {
-            "success"
-        }
-        
-        var resultData =
-            [
-                "request": "purchase",
-                "productID": transaction.productID,
-                "purchasedQuantity": String(
-                    describing: transaction.purchasedQuantity
-                ),
-                "productType": transaction.productType.rawValue,
-                "result": result,
-                "json": String(
-                    data: transaction.jsonRepresentation,
-                    encoding: .utf8
-                ) ?? "",
-            ] as [String: Any]
-        
-        if transaction.revocationDate != nil {
-            resultData["revocationDate"] = dateToString(transaction.revocationDate!)
-        }
-        
-        return resultData
     }
 
     static func convertTransactions(_ transactions: Transaction.Transactions)
