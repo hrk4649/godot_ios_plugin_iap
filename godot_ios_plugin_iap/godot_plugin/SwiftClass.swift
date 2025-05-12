@@ -24,7 +24,7 @@ import StoreKit
             for await verificationResult in Transaction.updates {
                 // Approved pending transaction comes here
                 print("updateTask: \(verificationResult)")
-                await SwiftClass.proceedUnfinishedTransactions()
+                await SwiftClass.proceedVerificationResult(verificationResult)
             }
         }
     }
@@ -332,7 +332,13 @@ import StoreKit
     static func convertToPurchaseResponse(_ transaction: Transaction)
         -> [String: Any]
     {
-        let resultData =
+        let result = if transaction.revocationDate != nil {
+            "revoked"
+        } else {
+            "success"
+        }
+        
+        var resultData =
             [
                 "request": "purchase",
                 "productID": transaction.productID,
@@ -340,12 +346,17 @@ import StoreKit
                     describing: transaction.purchasedQuantity
                 ),
                 "productType": transaction.productType.rawValue,
-                "result": "success",
+                "result": result,
                 "json": String(
                     data: transaction.jsonRepresentation,
                     encoding: .utf8
                 ) ?? "",
             ] as [String: Any]
+        
+        if transaction.revocationDate != nil {
+            resultData["revocationDate"] = dateToString(transaction.revocationDate!)
+        }
+        
         return resultData
     }
 
@@ -409,20 +420,24 @@ import StoreKit
         return 0
     }
 
+    static func proceedVerificationResult(_ verificationResult:VerificationResult<Transaction>) async {
+        switch verificationResult {
+        case .verified(let transaction):
+            await transaction.finish()
+            let resultData = convertToPurchaseResponse(transaction)
+            response(a1: "purchase", a2: resultData)
+            break
+        case .unverified(let transaction, let verificationError):
+            print(
+                "proceedVerificationResult: unverified transaction \(transaction), error \(verificationError)"
+            )
+            break
+        }
+    }
+    
     static func proceedUnfinishedTransactions() async {
         for await verificationResult in Transaction.unfinished {
-            switch verificationResult {
-            case .verified(let transaction):
-                await transaction.finish()
-                let resultData = convertToPurchaseResponse(transaction)
-                response(a1: "purchase", a2: resultData)
-                break
-            case .unverified(let transaction, let verificationError):
-                print(
-                    "proceedUnfinishedTransactions: unverified transaction \(transaction), error \(verificationError)"
-                )
-                break
-            }
+            await proceedVerificationResult(verificationResult)
         }
     }
 
