@@ -3,7 +3,7 @@
 # copy plugin's xcframework and gdip 
 # to $TARGET_PROJECT/ios/plugins/$PLUGIN_NAME
 
-PLUGIN_NAME=$(cat nativelib.json|jq -r '.name')
+PLUGIN_NAME=ios-in-app-purchase
 
 XCF_REL=bin/$PLUGIN_NAME.release.xcframework
 XCF_DBG=bin/$PLUGIN_NAME.debug.xcframework
