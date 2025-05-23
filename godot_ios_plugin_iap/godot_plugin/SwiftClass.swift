@@ -239,9 +239,18 @@ import StoreKit
     }
 
     static func dateToString(_ date: Date?) -> String {
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
-        return if date == nil { "" } else { dateFormatter.string(from: date!) }
+        return if let d = date {
+            d.formatted(.iso8601
+                    .year()
+                    .month()
+                    .day()
+                    .timeZone(separator: .omitted)
+                    .time(includingFractionalSeconds: true)
+                    .timeSeparator(.colon)
+            )
+        } else {
+            ""
+        }
     }
 
     static func convertToPurchaseResponse(_ transaction: Transaction)
