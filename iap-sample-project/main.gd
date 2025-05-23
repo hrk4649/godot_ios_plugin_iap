@@ -97,6 +97,7 @@ func update_product_list(data) -> void:
 
 func purchase_item(product_id) -> void:
 	print("purchase_item:%s" % product_id)
+	# specify "productID" to purchase
 	singleton.request("purchase", {"productID":product_id})
 
 func handle_purchased_products(data) -> void:
