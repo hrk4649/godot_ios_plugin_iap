@@ -62,7 +62,8 @@ func _receive_response(response_name:String, data:Dictionary) -> void:
 			call_deferred("handle_transaction_current_entitlements", data)
 
 func item_purchased(data) -> void:
-	# When purchasing a consumable item, Increasing number of item may be needed
+	# When purchasing a consumable item, 
+	# increasing number of item in your app may be needed
 
 	# response of purchase is like:
 	# {
@@ -101,9 +102,9 @@ func purchase_item(product_id) -> void:
 	singleton.request("purchase", {"productID":product_id})
 
 func handle_purchased_products(data) -> void:
-	# response of purchasedProducts includes only product id
 	for child in container_purchased_items.get_children():
 		container_purchased_items.remove_child(child)
+	# response of purchasedProducts includes only product id
 	var product_ids = data["productIDs"]
 	for product_id in product_ids:
 		var label = ItemLabel.instantiate()
@@ -150,8 +151,10 @@ func _on_button_purchased_item_pressed() -> void:
 
 func _on_button_transaction_history_pressed() -> void:
 	if singleton:
+		# transactionAll gets all transaction
 		print(singleton.request("transactionAll", {}))
 
 func _on_button_proceed_unfinished_pressed() -> void:
 	if singleton:
+		# proceedUnfinishedTransactions finishes unfinished transactions
 		print(singleton.request("proceedUnfinishedTransactions", {}))
