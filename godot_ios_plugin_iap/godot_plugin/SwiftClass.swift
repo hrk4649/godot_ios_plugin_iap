@@ -278,55 +278,64 @@ import StoreKit
     static func convertTransaction(transaction: Transaction, error: Error?)
         -> [String: Any]
     {
-        var result: [String: Any] =
-            [
-                "id": String(describing: transaction.id),
-                "originalID": String(describing: transaction.originalID),
-                "webOrderLineItemID": transaction.webOrderLineItemID ?? "",
-                "productID": transaction.productID,
-                "subscriptionGroupID": transaction.subscriptionGroupID ?? "",
-                "purchaseDate": dateToString(transaction.purchaseDate),
-                "originalPurchaseDate": dateToString(transaction.purchaseDate),
-                "expirationDate": dateToString(transaction.expirationDate),
-                "purchasedQuantity": String(
-                    describing: transaction.purchasedQuantity
-                ),
-                "isUpgraded": String(describing: transaction.isUpgraded),
-                // offer 17.2
-                //   vs
-                // offerType,
-                // offerID,
-                // offerPaymentModeStringRepresentation
-                // offerPeriodStringRepresentation
-                "revocationDate": dateToString(transaction.revocationDate),
-                "revocationReason": transaction.revocationReason?.rawValue
-                    ?? "",
-                "productType": transaction.productType.rawValue,
-                "appAccountToken": transaction.appAccountToken ?? "",
-                // environment 16.0
-                //   vs
-                // environmentStringRepresentation
-                // reason 17.0
-                //   vs
-                // reasonStringRepresentation
-                // storefront 17.0
-                //   vs
-                // storefrontCountryCode
-                // price 15.0
-                // currency 16.0
-                //   vs
-                // currencyCode
-                "appTransactionID": transaction.appTransactionID,
-                // deviceVerification
-                // deviceVerificationNonce
-                "ownershipType": transaction.ownershipType.rawValue,
-                "signedDate": dateToString(transaction.signedDate),
-                // advancedCommerceInfo 18.4
-                "json": String(
-                    data: transaction.jsonRepresentation,
-                    encoding: .utf8
-                ) ?? "",
-            ] as [String: Any]
+        var result: [String: Any] = [:]
+        result["id"] = String(describing: transaction.id)
+        result["originalID"] = String(describing: transaction.originalID)
+        if let s = transaction.webOrderLineItemID {
+            result["webOrderLineItemID"] = s
+        }
+        result["productID"] = transaction.productID
+        if let s = transaction.subscriptionGroupID {
+            result["subscriptionGroupID"] = s
+        }
+        result["purchaseDate"] = dateToString(transaction.purchaseDate)
+        result["originalPurchaseDate"] = dateToString(transaction.originalPurchaseDate)
+        if let d = transaction.expirationDate {
+            result["expirationDate"] = dateToString(d)
+        }
+        result["purchasedQuantity"] = String(describing: transaction.purchasedQuantity)
+        result["isUpgraded"] = String(describing: transaction.isUpgraded)
+        // offer 17.2
+        //   vs
+        // offerType,
+        // offerID,
+        // offerPaymentModeStringRepresentation
+        // offerPeriodStringRepresentation
+        if let d = transaction.revocationDate {
+            result["revocationDate"] = dateToString(d)
+        }
+        if let s = transaction.revocationReason?.rawValue {
+            result["revocationReason"] = s
+        }
+        result["productType"] = transaction.productType.rawValue
+        if let s = transaction.appAccountToken {
+            result["appAccountToken"] = s
+        }
+        // environment 16.0
+        //   vs
+        // environmentStringRepresentation
+        // reason 17.0
+        //   vs
+        // reasonStringRepresentation
+        // storefront 17.0
+        //   vs
+        // storefrontCountryCode
+        // price 15.0
+        // currency 16.0
+        //   vs
+        // currencyCode
+        result["appTransactionID"] = transaction.appTransactionID
+        // deviceVerification
+        // deviceVerificationNonce
+        result["ownershipType"] = transaction.ownershipType.rawValue
+        result["signedDate"] = dateToString(transaction.signedDate)
+        // advancedCommerceInfo 18.4
+        if let s = String(
+            data: transaction.jsonRepresentation,
+            encoding: .utf8
+        ) {
+            result["json"] = s
+        }
 
         if error != nil {
             result["error"] = error!.localizedDescription
