@@ -253,23 +253,24 @@ import StoreKit
             "success"
         }
         
-        var resultData =
-            [
-                "request": "purchase",
-                "productID": transaction.productID,
-                "purchasedQuantity": String(
-                    describing: transaction.purchasedQuantity
-                ),
-                "productType": transaction.productType.rawValue,
-                "result": result,
-                "json": String(
-                    data: transaction.jsonRepresentation,
-                    encoding: .utf8
-                ) ?? "",
-            ] as [String: Any]
+        var resultData: [String: Any] = [:]
+        resultData["request"] = "purchase"
+        resultData["result"] = result
+        resultData["productID"] = transaction.productID
+        resultData["purchasedQuantity"] = String(
+            describing: transaction.purchasedQuantity
+        )
+        resultData["productType"] = transaction.productType.rawValue
         
-        if transaction.revocationDate != nil {
-            resultData["revocationDate"] = dateToString(transaction.revocationDate!)
+        if let s = String(
+            data: transaction.jsonRepresentation,
+            encoding: .utf8
+        ) {
+            resultData["json"] = s
+        }
+        
+        if let d = transaction.revocationDate {
+            resultData["revocationDate"] = dateToString(d)
         }
         
         return resultData
