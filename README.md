@@ -27,7 +27,7 @@ TODO
 
 The build steps are confirmed in the following environments.
 
-- Godot: 4.4
+- Godot: 4.4.1
 - macOS: Sequoia 15.4.1
 - Xcode: 16.3
 - scons: v4.8.1
