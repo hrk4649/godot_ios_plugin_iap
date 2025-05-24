@@ -247,7 +247,7 @@ func _on_button_app_store_sync_pressed() -> void:
 ## Acknowledgements
 
 This plugin is built on the following works.
-Thank you @DrMoriarty and @cengiz-pz !
+Thank you [DrMoriarty](https://github.com/DrMoriarty) and [cengiz-pz](https://github.com/cengiz-pz) !
 
 - Godot iOS Plugin template https://github.com/DrMoriarty/godot_ios_plugin_template
 - In-app Review Plugin https://github.com/cengiz-pz/godot-ios-inapp-review-plugin
