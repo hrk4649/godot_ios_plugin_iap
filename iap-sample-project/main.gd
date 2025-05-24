@@ -158,3 +158,8 @@ func _on_button_proceed_unfinished_pressed() -> void:
 	if singleton:
 		# proceedUnfinishedTransactions finishes unfinished transactions
 		print(singleton.request("proceedUnfinishedTransactions", {}))
+
+func _on_button_app_store_sync_pressed() -> void:
+	if singleton:
+		# appStoreSync restores purchase
+		print(singleton.request("appStoreSync", {}))

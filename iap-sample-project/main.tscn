@@ -55,6 +55,12 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 32
 text = "Proceed Unfinished Transactions"
 
+[node name="ButtonAppStoreSync" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Restore Purchase"
+
 [connection signal="pressed" from="VBoxContainer/ButtonPurchasedItem" to="." method="_on_button_purchased_item_pressed"]
 [connection signal="pressed" from="VBoxContainer/ButtonTransactionHistory" to="." method="_on_button_transaction_history_pressed"]
 [connection signal="pressed" from="VBoxContainer/ButtonProceedUnfinished" to="." method="_on_button_proceed_unfinished_pressed"]
+[connection signal="pressed" from="VBoxContainer/ButtonAppStoreSync" to="." method="_on_button_app_store_sync_pressed"]
