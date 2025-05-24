@@ -52,6 +52,8 @@ import StoreKit
             return requestTransactionAll()
         case "proceedUnfinishedTransactions":
             return requestProceedUnfinishedTransactions()
+        case "appStoreSync":
+            return requestAppStoreSync()
         default:
             return 1
         }
@@ -66,7 +68,7 @@ import StoreKit
         shared.startUpdateTask()
         return 0
     }
-    
+
     static func convertProducts(_ products: [Product]) -> [[String: Any]] {
         return products.map { product in
             return [
@@ -108,7 +110,7 @@ import StoreKit
                 let resultData = [
                     "request": "products",
                     "result": "success",
-                    "products": converted
+                    "products": converted,
                 ]
 
                 response(a1: "products", a2: resultData)
@@ -240,7 +242,8 @@ import StoreKit
 
     static func dateToString(_ date: Date?) -> String {
         return if let d = date {
-            d.formatted(.iso8601
+            d.formatted(
+                .iso8601
                     .year()
                     .month()
                     .day()
@@ -256,12 +259,13 @@ import StoreKit
     static func convertToPurchaseResponse(_ transaction: Transaction)
         -> [String: Any]
     {
-        let result = if transaction.revocationDate != nil {
-            "revoked"
-        } else {
-            "success"
-        }
-        
+        let result =
+            if transaction.revocationDate != nil {
+                "revoked"
+            } else {
+                "success"
+            }
+
         var resultData: [String: Any] = [:]
         resultData["request"] = "purchase"
         resultData["result"] = result
@@ -270,21 +274,21 @@ import StoreKit
             describing: transaction.purchasedQuantity
         )
         resultData["productType"] = transaction.productType.rawValue
-        
+
         if let s = String(
             data: transaction.jsonRepresentation,
             encoding: .utf8
         ) {
             resultData["json"] = s
         }
-        
+
         if let d = transaction.revocationDate {
             resultData["revocationDate"] = dateToString(d)
         }
-        
+
         return resultData
     }
-    
+
     static func convertTransaction(transaction: Transaction, error: Error?)
         -> [String: Any]
     {
@@ -299,11 +303,15 @@ import StoreKit
             result["subscriptionGroupID"] = s
         }
         result["purchaseDate"] = dateToString(transaction.purchaseDate)
-        result["originalPurchaseDate"] = dateToString(transaction.originalPurchaseDate)
+        result["originalPurchaseDate"] = dateToString(
+            transaction.originalPurchaseDate
+        )
         if let d = transaction.expirationDate {
             result["expirationDate"] = dateToString(d)
         }
-        result["purchasedQuantity"] = String(describing: transaction.purchasedQuantity)
+        result["purchasedQuantity"] = String(
+            describing: transaction.purchasedQuantity
+        )
         result["isUpgraded"] = String(describing: transaction.isUpgraded)
         // offer 17.2
         //   vs
@@ -414,7 +422,9 @@ import StoreKit
         return 0
     }
 
-    static func proceedVerificationResult(_ verificationResult:VerificationResult<Transaction>) async {
+    static func proceedVerificationResult(
+        _ verificationResult: VerificationResult<Transaction>
+    ) async {
         switch verificationResult {
         case .verified(let transaction):
             await transaction.finish()
@@ -428,7 +438,7 @@ import StoreKit
             break
         }
     }
-    
+
     static func proceedUnfinishedTransactions() async {
         for await verificationResult in Transaction.unfinished {
             await proceedVerificationResult(verificationResult)
@@ -443,6 +453,28 @@ import StoreKit
                 "result": "success",
             ]
             response(a1: "proceedUnfinishedTransactions", a2: resultData)
+        }
+        return 0
+    }
+
+    static func requestAppStoreSync() -> Int {
+        print("requestAppStoreSync")
+        Task {
+            do {
+                try await AppStore.sync()
+                let resultData = [
+                    "request": "appStoreSync",
+                    "result": "success",
+                ]
+                response(a1: "appStoreSync", a2: resultData)
+            } catch {
+                let resultData = [
+                    "request": "appStoreSync",
+                    "result": "error",
+                    "error": error.localizedDescription,
+                ]
+                response(a1: "appStoreSync", a2: resultData)
+            }
         }
         return 0
     }
