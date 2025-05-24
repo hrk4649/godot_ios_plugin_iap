@@ -9,7 +9,12 @@ XCF_REL=bin/$PLUGIN_NAME.release.xcframework
 XCF_DBG=bin/$PLUGIN_NAME.debug.xcframework
 GDIP_FILE=$PLUGIN_NAME.gdip
 
-TARGET_PROJECT=../iap-sample-project
+if [ -z "$1" ]; then
+    echo "Usage: $0 <target_project_path>"
+    exit 1
+fi
+
+TARGET_PROJECT=$1
 TARGET_PLUGIN=$TARGET_PROJECT/ios/plugins/$PLUGIN_NAME
 
 echo PLUGIN_NAME $PLUGIN_NAME
