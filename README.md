@@ -60,15 +60,10 @@ There are build steps.
 
 ### Copy it into your Godot project
 
-Edit ```TARGET_PROJECT``` in ```copy_plugin.sh``` to your godot project and run it.
-
-copy_plugin.sh
-```bash
-TARGET_PROJECT=../iap-sample-project
-```
+run ```copy_plugin.sh``` to copy files of the plugin.
 
 ```bash
-% ./copy_plugin.sh
+% ./copy_plugin.sh ../your_godot_project
 ```
 
 ## How to use
