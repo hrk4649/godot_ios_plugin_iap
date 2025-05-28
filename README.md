@@ -21,7 +21,21 @@ This plugin uses Storekit in Swift.
 
 ## Install
 
-TODO
+- Open AssetLib and search ```Godot iOS plugin for In-App purchase```
+- Select the plugin and click ```Download```
+    -  In ```Configure Asset Before Installing``` dialog, set ```Ignore asset root``` checkbox to off to include ```ios``` directory (image 1)
+- Open Export dialog and create an iOS export (image 2)
+    - set ```Bundle Identifier``` for your app
+    - ensure that ```Ios In App Purchase``` checkbox in ```Plugins``` is on
+
+image 1
+
+![install 1](asset/install_01.png)
+
+image 2
+
+![install 2](asset/install_02.png)
+
 
 ## Build
 
