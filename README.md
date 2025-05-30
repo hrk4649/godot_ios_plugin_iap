@@ -9,6 +9,7 @@ This plugin uses Storekit in Swift.
 - Install
 - Build
 - How to use
+- Bug report
 - Acknowledgements
 - License
 
@@ -20,6 +21,8 @@ This plugin uses Storekit in Swift.
 - Receive actions outside of the app and send them as purchase responses
 
 ## Install
+
+The following steps download the plugin from the Godot editor. 
 
 - Open AssetLib and search ```Godot iOS plugin for In-App purchase```
 - Select the plugin and click ```Download```
@@ -252,6 +255,10 @@ func _on_button_app_store_sync_pressed() -> void:
 		# appStoreSync restores purchase
 		print(singleton.request("appStoreSync", {}))
 ```
+
+## Bug report
+
+Bug report is important. Feel free to leave a report on [issues](https://github.com/hrk4649/godot_ios_plugin_iap/issues).
 
 ## Acknowledgements
 
