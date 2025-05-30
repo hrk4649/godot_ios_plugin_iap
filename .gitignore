@@ -9,3 +9,6 @@ iap-sample-project/ios/plugins/*
 
 # private memo file
 MEMO.md
+
+# zip file
+*.zip
