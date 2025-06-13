@@ -12,3 +12,4 @@ MEMO.md
 
 # zip file
 *.zip
+.DS_Store
