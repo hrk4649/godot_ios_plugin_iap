@@ -160,6 +160,7 @@ import StoreKit
                         "error": "no productID:\(productID!)",
                     ]
                     response(a1: "purchase", a2: errorData)
+                    return
                 }
                 let product = products[0]
                 let result: Product.PurchaseResult =
