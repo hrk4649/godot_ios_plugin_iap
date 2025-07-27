@@ -167,19 +167,24 @@ import StoreKit
                     try await product.purchase()
                 print("requestPurchase:purchase:\(result)")
                 switch result {
-                case .success(.verified(let transaction)):
-                    await transaction.finish()
-                    let resultData = convertToPurchaseResponse(transaction)
-                    response(a1: "purchase", a2: resultData)
-                    break
-                case .success(.unverified(let transaction, let error)):
-                    let resultData = [
-                        "request": "purchase",
-                        "productID": productID!,
-                        "result": "unverified",
-                        "error": error.localizedDescription,
-                    ]
-                    response(a1: "purchase", a2: resultData)
+                case .success(let verificationResult):
+                    switch verificationResult {
+                    case .verified(let transaction):
+                        await transaction.finish()
+                        var resultData = convertToPurchaseResponse(transaction)
+                        addJwsRepresentation(result: &resultData, verified: verificationResult)
+                        response(a1: "purchase", a2: resultData)
+                        break
+                    case .unverified(let transaction, let error):
+                        let resultData = [
+                            "request": "purchase",
+                            "productID": productID!,
+                            "result": "unverified",
+                            "error": error.localizedDescription,
+                        ]
+                        response(a1: "purchase", a2: resultData)
+                        break
+                    }
                     break
                 case .pending:
                     let resultData = [
@@ -363,6 +368,13 @@ import StoreKit
         return result
     }
 
+    static func addJwsRepresentation(
+        result:inout [String: Any],
+        verified:VerificationResult<Transaction>
+    ) {
+        result["jwsRepresentation"] = verified.jwsRepresentation
+    }
+    
     static func convertTransactions(_ transactions: Transaction.Transactions)
         async -> [[String: Any]]
     {
@@ -370,10 +382,11 @@ import StoreKit
         for await verificationResult in transactions {
             switch verificationResult {
             case .verified(let transaction):
-                let converted: [String: Any] = convertTransaction(
+                var converted: [String: Any] = convertTransaction(
                     transaction: transaction,
                     error: nil
                 )
+                addJwsRepresentation(result: &converted, verified: verificationResult)
                 results.append(converted)
 
                 break
@@ -429,7 +442,8 @@ import StoreKit
         switch verificationResult {
         case .verified(let transaction):
             await transaction.finish()
-            let resultData = convertToPurchaseResponse(transaction)
+            var resultData = convertToPurchaseResponse(transaction)
+            addJwsRepresentation(result: &resultData, verified: verificationResult)
             response(a1: "purchase", a2: resultData)
             break
         case .unverified(let transaction, let verificationError):
