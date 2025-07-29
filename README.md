@@ -115,11 +115,11 @@ This is a list of request.
 - transactionCurrentEntitlements
 	- returns a result of [Transaction.currentEntitlements](https://developer.apple.com/documentation/storekit/transaction/currententitlements)
 	- no argument required
-	- the product item includes [jwsRepresentation](https://developer.apple.com/documentation/storekit/verificationresult/jwsrepresentation-21vgo) if the product is verified
+	- Verified purchased items include [jwsRepresentation](https://developer.apple.com/documentation/storekit/verificationresult/jwsrepresentation-21vgo)
 - transactionAll
 	- returns a result of [Transaction.all](https://developer.apple.com/documentation/storekit/transaction/all)
 	- no argument required
-	- the product item includes [jwsRepresentation](https://developer.apple.com/documentation/storekit/verificationresult/jwsrepresentation-21vgo) if the product is verified
+	- Verified purchased items include [jwsRepresentation](https://developer.apple.com/documentation/storekit/verificationresult/jwsrepresentation-21vgo)
 - proceedUnfinishedTransactions
 	- proceeds unfinished transactions
 	- no argument required
