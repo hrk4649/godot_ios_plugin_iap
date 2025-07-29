@@ -90,7 +90,7 @@ This plugin singleton's ```request``` method calls the methods implemented in St
 ```request``` method returns 0 if the request is succeeded or 1 if failed. 
 
 All response from the plugin singleton is returned as a signal named ```response```. 
-It is recommended that Connecting to ```response``` signal before calling ```request``` method.
+It is recommended that connecting to ```response``` signal before calling ```request``` method not to miss the responses.
 
 ### Request and response
 
@@ -125,7 +125,8 @@ This is a list of request.
 	- no argument required
 	- returns results as purchase response
 - appStoreSync
-	- call [AppStore.sync()](https://developer.apple.com/documentation/storekit/appstore/sync()) to restore transaction information when a user suspects the app isn’t showing all the transactions. Calling this method shows Apple ID Login popup
+	- call [AppStore.sync()](https://developer.apple.com/documentation/storekit/appstore/sync()) to restore transaction information ```when a user suspects the app isn’t showing all the transactions.```
+	- Calling this method causes that Apple ID Login popup shows
 	- no argument required
 
 ### Sample project
