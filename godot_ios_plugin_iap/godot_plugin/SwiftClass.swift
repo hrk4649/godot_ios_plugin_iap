@@ -171,9 +171,9 @@ import StoreKit
                     switch verificationResult {
                     case .verified(let transaction):
                         await transaction.finish()
-                        var resultData = convertToPurchaseResponse(transaction)
-                        addJwsRepresentation(result: &resultData, verified: verificationResult)
-                        response(a1: "purchase", a2: resultData)
+                        let resultData = convertToPurchaseResponse(transaction)
+                        let withJws = addJwsRepresentation(currDict: resultData, verified: verificationResult)
+                        response(a1: "purchase", a2: withJws)
                         break
                     case .unverified(let transaction, let error):
                         let resultData = [
@@ -369,12 +369,17 @@ import StoreKit
     }
 
     static func addJwsRepresentation(
-        result:inout [String: Any],
-        verified:VerificationResult<Transaction>
-    ) {
-        result["jwsRepresentation"] = verified.jwsRepresentation
+        currDict: [String: Any],
+        verified: VerificationResult<Transaction>
+    ) -> [String: Any] {
+        var newDict: [String: Any] = [:]
+        currDict.forEach { key, value in
+            newDict[key] = value
+        }
+        newDict["jwsRepresentation"] = verified.jwsRepresentation
+        return newDict
     }
-    
+
     static func convertTransactions(_ transactions: Transaction.Transactions)
         async -> [[String: Any]]
     {
@@ -382,12 +387,12 @@ import StoreKit
         for await verificationResult in transactions {
             switch verificationResult {
             case .verified(let transaction):
-                var converted: [String: Any] = convertTransaction(
+                let converted: [String: Any] = convertTransaction(
                     transaction: transaction,
                     error: nil
                 )
-                addJwsRepresentation(result: &converted, verified: verificationResult)
-                results.append(converted)
+                let withJws = addJwsRepresentation(currDict: converted, verified: verificationResult)
+                results.append(withJws)
 
                 break
             case .unverified(let transaction, let verificationError):
@@ -442,9 +447,9 @@ import StoreKit
         switch verificationResult {
         case .verified(let transaction):
             await transaction.finish()
-            var resultData = convertToPurchaseResponse(transaction)
-            addJwsRepresentation(result: &resultData, verified: verificationResult)
-            response(a1: "purchase", a2: resultData)
+            let resultData = convertToPurchaseResponse(transaction)
+            let withJws = addJwsRepresentation(currDict: resultData, verified: verificationResult)
+            response(a1: "purchase", a2: withJws)
             break
         case .unverified(let transaction, let verificationError):
             print(
