@@ -85,6 +85,52 @@ run ```copy_plugin.sh``` to copy files of the plugin.
 
 ## How to use
 
+This plugin singleton's ```request``` method calls the methods implemented in StoreKit.
+```request``` takes two arguments, a name of request and a Dictionary that contains key and values used in the request. 
+```request``` method returns 0 if the request is succeeded or 1 if failed. 
+
+All response from the plugin singleton is returned as a signal named ```response```. 
+It is recommended that connecting to ```response``` signal before calling ```request``` method not to miss the responses.
+
+### Request and response
+
+This is a list of request.
+
+- startUpdateTask
+    - starts a task to receive callbacks from [Transaction.updates](https://developer.apple.com/documentation/storekit/transaction/updates)
+    - returns purchase response when purchasing is done outside of the app
+- products
+	- gets a list of products.
+	- requires "productIDs" which value is an array of product id registered in app store or StoreKit configuration
+	- returns the result of [Product.products()](https://developer.apple.com/documentation/storekit/product/products(for:))
+- purchase
+	- purchases an item specified by its product id
+	- requires "productID"
+	- returns the result of [Product.purchase()](https://developer.apple.com/documentation/storekit/product/purchase(options:))
+	- the result includes [jwsRepresentation](https://developer.apple.com/documentation/storekit/verificationresult/jwsrepresentation-21vgo)
+- purchasedProducts
+	- gets a list of products the user purchased
+	- no argument required
+	- returns a list of products the user purchased. a product with revocationDate is not included in the list
+- transactionCurrentEntitlements
+	- returns a result of [Transaction.currentEntitlements](https://developer.apple.com/documentation/storekit/transaction/currententitlements)
+	- no argument required
+	- Verified purchased items include [jwsRepresentation](https://developer.apple.com/documentation/storekit/verificationresult/jwsrepresentation-21vgo)
+- transactionAll
+	- returns a result of [Transaction.all](https://developer.apple.com/documentation/storekit/transaction/all)
+	- no argument required
+	- Verified purchased items include [jwsRepresentation](https://developer.apple.com/documentation/storekit/verificationresult/jwsrepresentation-21vgo)
+- proceedUnfinishedTransactions
+	- proceeds unfinished transactions
+	- no argument required
+	- returns results as purchase response
+- appStoreSync
+	- call [AppStore.sync()](https://developer.apple.com/documentation/storekit/appstore/sync()) to restore transaction information ```when a user suspects the app isn’t showing all the transactions.```
+	- Calling this method causes that Apple ID Login popup shows
+	- no argument required
+
+### Sample project
+
 The following code is from the sample project.
 
 iap-sample-project/main.gd
@@ -106,12 +152,15 @@ func _ready() -> void:
 		return
 
 	print("IOSInAppPurchase is found")
+
 	# get the singleton
 	singleton = Engine.get_singleton("IOSInAppPurchase")
+
 	# connect response signal with the callback method.
 	# It should be done before calling startUpdateTask to receive
 	# purchase responses occured outside of the app.
 	singleton.response.connect(_receive_response)
+
 	# start update task to receive update outside of the app
 	print("startUpdateTask:%s" % singleton.request("startUpdateTask", {}))
 
@@ -164,6 +213,7 @@ func item_purchased(data) -> void:
 	#     "purchasedQuantity": "1"
 	#     "productType": "Consumable",
 	#     "json": "{ ... }",
+	#     "jwsRepresentation": "...",
 	#     "revocationDate": "",  // revoked purchase has "revocationDate"
 	# }
 
@@ -215,6 +265,7 @@ func handle_transaction_current_entitlements(data) -> void:
 	#             "purchasedQuantity": "1",
 	#             "originalPurchaseDate": "2025-04-21 06:58:55",
 	#             "json": "{...}",
+	#             "jwsRepresentation": "...",
 	#             "isUpgraded": "false",
 	#             "purchaseDate": "2025-04-21 06:58:55",
 	#             "originalID": "2000000902286324",
