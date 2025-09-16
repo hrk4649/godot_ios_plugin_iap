@@ -64,7 +64,7 @@ There are build steps.
 # Clean godot directory
 % script/build.sh -g
 # Download specified godot version
-% script/build.sh -G 4.4
+% script/build.sh -G 4.5
 # Generate godot header. In this case, it waits 600 seconds, assuming that the build process would be finished 
 % script/build.sh -Ht 600
 ```

@@ -7,7 +7,7 @@ trap "sleep 1; echo" EXIT
 
 plugin_name="InappReviewPlugin"
 PLUGIN_VERSION=''
-supported_godot_versions=("4.2" "4.3" "4.4")
+supported_godot_versions=("4.2" "4.3" "4.4" "4.5")
 BUILD_TIMEOUT=40	# increase this value using -t option if device is not able to generate all headers before godot build is killed
 
 DESTDIR="./bin/release"
