@@ -21,10 +21,15 @@ This plugin uses Storekit in Swift.
 - Request current entitlements (purchased item lists)
 - Receive actions outside of the app and send them as purchase responses
 
+## Export the project and run it on the device
+
+If you try exporting your godot project to an iOS device for the first time, my recommendation is to export your project without the plugin installed and start it on the iOS device using Xcode. This is to confirm that exported project works on the device correctly. The following document will be helpful.
+
+- Exporting for iOS https://docs.godotengine.org/en/stable/tutorials/export/exporting_for_ios.html
+
 ## Install the plugin
 
 The following steps are to download and install the plugin from the Godot editor. 
-Prepare your godot project you want it to use the plugin.
 
 - Open AssetLib and search ```Godot iOS plugin for In-App purchase```
 - Select the plugin and click ```Download```
@@ -32,6 +37,9 @@ Prepare your godot project you want it to use the plugin.
 - Open Export dialog and create an iOS export (image 2)
     - set ```Bundle Identifier``` for your app
     - ensure that ```Ios In App Purchase``` checkbox in ```Plugins``` is on
+- Export the project and try starting the exported project on an iOS using Xcode
+
+Note: the exported project may be failed to start on an emulator. use a real device.
 
 image 1
 
@@ -41,14 +49,6 @@ image 2
 
 ![install 2](asset/install_02.png)
 
-## Export the project and run it on the device
-
-After installing the plugin, export your project and run it on the device using Xcode.
-The following document will be helpful.
-
-- Exporting for iOS https://docs.godotengine.org/en/stable/tutorials/export/exporting_for_ios.html
-
-Note that the plugin doesn't work on an emulator. use a real device.
 
 ## Build the plugin from source code
 
