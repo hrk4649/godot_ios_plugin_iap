@@ -6,8 +6,9 @@ This plugin uses Storekit in Swift.
 ## Contents
 
 - Features
-- Install
-- Build
+- Install the plugin
+- Export and start the project on the device
+- Build the plugin from source code
 - How to use
 - Bug report
 - Acknowledgements
@@ -20,9 +21,10 @@ This plugin uses Storekit in Swift.
 - Request current entitlements (purchased item lists)
 - Receive actions outside of the app and send them as purchase responses
 
-## Install
+## Install the plugin
 
-The following steps download the plugin from the Godot editor. 
+The following steps are to download and install the plugin from the Godot editor. 
+Prepare your godot project you want it to use the plugin.
 
 - Open AssetLib and search ```Godot iOS plugin for In-App purchase```
 - Select the plugin and click ```Download```
@@ -39,8 +41,16 @@ image 2
 
 ![install 2](asset/install_02.png)
 
+## Export the project and run it on the device
 
-## Build
+After installing the plugin, export your project and run it on the device using Xcode.
+The following document will be helpful.
+
+- Exporting for iOS https://docs.godotengine.org/en/stable/tutorials/export/exporting_for_ios.html
+
+Note that the plugin doesn't work on an emulator. use a real device.
+
+## Build the plugin from source code
 
 The build steps are confirmed in the following environments.
 
@@ -64,7 +74,7 @@ There are build steps.
 # Clean godot directory
 % script/build.sh -g
 # Download specified godot version
-% script/build.sh -G 4.5
+% script/build.sh -G 4.6
 # Generate godot header. In this case, it waits 600 seconds, assuming that the build process would be finished 
 % script/build.sh -Ht 600
 ```
@@ -83,7 +93,7 @@ run ```copy_plugin.sh``` to copy files of the plugin.
 % ./copy_plugin.sh ../your_godot_project
 ```
 
-## How to use
+## How to use the plugin
 
 This plugin singleton's ```request``` method calls the methods implemented in StoreKit.
 ```request``` takes two arguments, a name of request and a Dictionary that contains key and values used in the request. 
@@ -94,37 +104,38 @@ It is recommended that connecting to ```response``` signal before calling ```req
 
 ### Request and response
 
-This is a list of request.
+This is a list of requests.
+The list shows what each request does and what information is returned in response.
 
-- startUpdateTask
+- `startUpdateTask`
     - starts a task to receive callbacks from [Transaction.updates](https://developer.apple.com/documentation/storekit/transaction/updates)
     - returns purchase response when purchasing is done outside of the app
-- products
+- `products`
 	- gets a list of products.
 	- requires "productIDs" which value is an array of product id registered in app store or StoreKit configuration
 	- returns the result of [Product.products()](https://developer.apple.com/documentation/storekit/product/products(for:))
-- purchase
+- `purchase`
 	- purchases an item specified by its product id
 	- requires "productID"
 	- returns the result of [Product.purchase()](https://developer.apple.com/documentation/storekit/product/purchase(options:))
 	- the result includes [jwsRepresentation](https://developer.apple.com/documentation/storekit/verificationresult/jwsrepresentation-21vgo)
-- purchasedProducts
+- `purchasedProducts`
 	- gets a list of products the user purchased
 	- no argument required
 	- returns a list of products the user purchased. a product with revocationDate is not included in the list
-- transactionCurrentEntitlements
+- `transactionCurrentEntitlements`
 	- returns a result of [Transaction.currentEntitlements](https://developer.apple.com/documentation/storekit/transaction/currententitlements)
 	- no argument required
 	- Verified purchased items include [jwsRepresentation](https://developer.apple.com/documentation/storekit/verificationresult/jwsrepresentation-21vgo)
-- transactionAll
+- `transactionAll`
 	- returns a result of [Transaction.all](https://developer.apple.com/documentation/storekit/transaction/all)
 	- no argument required
 	- Verified purchased items include [jwsRepresentation](https://developer.apple.com/documentation/storekit/verificationresult/jwsrepresentation-21vgo)
-- proceedUnfinishedTransactions
+- `proceedUnfinishedTransactions`
 	- proceeds unfinished transactions
 	- no argument required
 	- returns results as purchase response
-- appStoreSync
+- `appStoreSync`
 	- call [AppStore.sync()](https://developer.apple.com/documentation/storekit/appstore/sync()) to restore transaction information ```when a user suspects the app isn’t showing all the transactions.```
 	- Calling this method causes that Apple ID Login popup shows
 	- no argument required
