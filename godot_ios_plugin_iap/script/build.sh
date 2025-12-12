@@ -1,13 +1,13 @@
 #!/bin/bash
 #
 # © 2024-present https://github.com/cengiz-pz
-#
+# (c) 2025 Hiroki Taira
 set -e
 trap "sleep 1; echo" EXIT
 
 plugin_name="InappReviewPlugin"
 PLUGIN_VERSION=''
-supported_godot_versions=("4.2" "4.3" "4.4" "4.5")
+supported_godot_versions=("4.2" "4.3" "4.4" "4.5" "4.6" "latest")
 BUILD_TIMEOUT=40	# increase this value using -t option if device is not able to generate all headers before godot build is killed
 
 DESTDIR="./bin/release"
@@ -158,6 +158,34 @@ function download_godot()
 	echo "$SELECTED_GODOT_VERSION" > godot/GODOT_VERSION
 }
 
+function download_godot_latest()
+{
+	if [[ $# -eq 0 ]]
+	then
+		display_error "Error: Please provide the Godot version as an option argument for -G option."
+		exit 1
+	fi
+
+	if [[ -d "godot" ]]
+	then
+		display_error "Error: godot directory already exists. Won't download."
+		exit 1
+	fi
+
+	SELECTED_GODOT_VERSION=$1
+	display_status "downloading godot version $SELECTED_GODOT_VERSION..."
+
+	godot_directory="godot-master"
+	godot_archive_file_name="master.zip"
+
+	curl -LO "https://github.com/godotengine/godot/archive/refs/heads/master.zip"
+	unzip "$godot_archive_file_name"
+
+	mv "$godot_directory" godot
+	rm $godot_archive_file_name
+
+	echo "$SELECTED_GODOT_VERSION" > godot/GODOT_VERSION
+}
 
 function generate_godot_headers()
 {
@@ -415,7 +443,12 @@ fi
 
 if [[ "$do_download_godot" == true ]]
 then
-	download_godot $GODOT_VERSION
+	if [[ "$GODOT_VERSION" == "latest" ]]
+	then
+		download_godot_latest $GODOT_VERSION
+	else
+		download_godot $GODOT_VERSION
+	fi
 fi
 
 if [[ "$do_generate_headers" == true ]]
