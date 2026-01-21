@@ -6,6 +6,7 @@ This plugin uses Storekit in Swift.
 ## Contents
 
 - Features
+- Requirements
 - Install
 - Build
 - How to use
@@ -19,6 +20,10 @@ This plugin uses Storekit in Swift.
 - Request purchase a product
 - Request current entitlements (purchased item lists)
 - Receive actions outside of the app and send them as purchase responses
+
+## Requirements
+
+iOS 15.0 or later.
 
 ## Install
 
@@ -47,7 +52,7 @@ The build steps are confirmed in the following environments.
 - Godot: 4.4.1
 - macOS: Sequoia 15.4.1
 - Xcode: 16.3
-- scons: v4.8.1
+- SCons: v4.8.1 (SCons is required for build script to work correctly)
 - python: 3.12
 - iPhone: iPhone SE, iOS 18.3.2
 
@@ -65,7 +70,8 @@ There are build steps.
 % script/build.sh -g
 # Download specified godot version
 % script/build.sh -G 4.5
-# Generate godot header. In this case, it waits 600 seconds, assuming that the build process would be finished 
+# Generate godot header. In this case, it waits 600 seconds, assuming that the build process would be finished
+# SCons must be installed for this script to work
 % script/build.sh -Ht 600
 ```
 
