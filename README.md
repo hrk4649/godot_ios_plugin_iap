@@ -54,20 +54,22 @@ image 2
 
 The build steps are confirmed in the following environments.
 
-- Godot: 4.4.1
-- macOS: Sequoia 15.4.1
-- Xcode: 16.3
+- Godot: 4.6
+- macOS: Tahoe 26.2
+- Xcode: 26.2
+    - Xcode minimum Deployment Target for iOS is 15
 - scons: v4.8.1
-- python: 3.12
-- iPhone: iPhone SE, iOS 18.3.2
+	- scons is used to generate Godot header files
+- python: 3.12.2
+- iPhone: iPhone SE, iOS 26.2
 
 There are build steps.
 
-- Generate godot header files
+- Generate Godot header files
 - Generate plugin's static library
 - Copy it into your Godot project
 
-### Generate godot header files
+### Generate Godot header files
 
 ```bash
 % cd godot_ios_plugin_iap
