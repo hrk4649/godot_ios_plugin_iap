@@ -1,66 +1,106 @@
-[gd_scene load_steps=3 format=3 uid="uid://da7fc52adm1lp"]
+[gd_scene format=3 uid="uid://da7fc52adm1lp"]
 
+[ext_resource type="Theme" uid="uid://dg3yumgd76p1o" path="res://my_theme.tres" id="1_0xm2m"]
 [ext_resource type="Script" uid="uid://bxhbrwfa4rkkt" path="res://main.gd" id="1_ig7tw"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_ig7tw"]
 font_size = 32
 
-[node name="Main" type="Control"]
-layout_mode = 3
+[node name="Main" type="TabContainer" unique_id=2097528469]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme = ExtResource("1_0xm2m")
+current_tab = 0
 script = ExtResource("1_ig7tw")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="Available Items" type="VBoxContainer" parent="." unique_id=1750630865]
+layout_mode = 2
+metadata/_tab_index = 0
 
-[node name="LabelPurchase" type="Label" parent="VBoxContainer"]
+[node name="LabelPurchase" type="Label" parent="Available Items" unique_id=1450630852]
 layout_mode = 2
 text = "Purchase"
 label_settings = SubResource("LabelSettings_ig7tw")
 horizontal_alignment = 1
 
-[node name="PurchaseItems" type="VBoxContainer" parent="VBoxContainer"]
+[node name="PurchaseItems" type="VBoxContainer" parent="Available Items" unique_id=1840236392]
 layout_mode = 2
 
-[node name="LabelPurchasedItems" type="Label" parent="VBoxContainer"]
+[node name="LabelCoin" type="Label" parent="Available Items" unique_id=1949172015]
+layout_mode = 2
+text = "Coin:0"
+label_settings = SubResource("LabelSettings_ig7tw")
+horizontal_alignment = 1
+
+[node name="Purchased Items" type="VBoxContainer" parent="." unique_id=127145080]
+visible = false
+layout_mode = 2
+metadata/_tab_index = 1
+
+[node name="LabelPurchasedItems" type="Label" parent="Purchased Items" unique_id=1924608366]
 layout_mode = 2
 text = "Purchased Items"
 label_settings = SubResource("LabelSettings_ig7tw")
 horizontal_alignment = 1
 
-[node name="PurchasedItems" type="VBoxContainer" parent="VBoxContainer"]
+[node name="PurchasedItems" type="VBoxContainer" parent="Purchased Items" unique_id=1215946183]
 layout_mode = 2
 
-[node name="ButtonPurchasedItem" type="Button" parent="VBoxContainer"]
+[node name="ButtonPurchasedItem" type="Button" parent="Purchased Items" unique_id=1989151709]
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
 text = "Update Purchased Items"
 
-[node name="ButtonTransactionHistory" type="Button" parent="VBoxContainer"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 32
-text = "Transaction History"
-
-[node name="ButtonProceedUnfinished" type="Button" parent="VBoxContainer"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 32
-text = "Proceed Unfinished Transactions"
-
-[node name="ButtonAppStoreSync" type="Button" parent="VBoxContainer"]
+[node name="ButtonAppStoreSync" type="Button" parent="Purchased Items" unique_id=2116569382]
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
 text = "Restore Purchase"
 
-[connection signal="pressed" from="VBoxContainer/ButtonPurchasedItem" to="." method="_on_button_purchased_item_pressed"]
-[connection signal="pressed" from="VBoxContainer/ButtonTransactionHistory" to="." method="_on_button_transaction_history_pressed"]
-[connection signal="pressed" from="VBoxContainer/ButtonProceedUnfinished" to="." method="_on_button_proceed_unfinished_pressed"]
-[connection signal="pressed" from="VBoxContainer/ButtonAppStoreSync" to="." method="_on_button_app_store_sync_pressed"]
+[node name="Transactions" type="VBoxContainer" parent="." unique_id=1376414751]
+visible = false
+layout_mode = 2
+metadata/_tab_index = 2
+
+[node name="LabelTransactions" type="Label" parent="Transactions" unique_id=1945248906]
+layout_mode = 2
+text = "Transactions"
+label_settings = SubResource("LabelSettings_ig7tw")
+horizontal_alignment = 1
+
+[node name="Transactions" type="VBoxContainer" parent="Transactions" unique_id=74280946]
+layout_mode = 2
+
+[node name="ButtonTransactionAll" type="Button" parent="Transactions" unique_id=848275334]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Transaction All"
+
+[node name="ButtonTransactionCurrentEntitlements" type="Button" parent="Transactions" unique_id=101267158]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Current Entitlements"
+
+[node name="ButtonClear" type="Button" parent="Transactions" unique_id=1801844712]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "CLEAR"
+
+[node name="LabelEmpty" type="Label" parent="Transactions" unique_id=210213859]
+layout_mode = 2
+label_settings = SubResource("LabelSettings_ig7tw")
+horizontal_alignment = 1
+
+[node name="ButtonProceedUnfinished" type="Button" parent="Transactions" unique_id=1689400836]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Proceed Unfinished Transactions"
+
+[connection signal="pressed" from="Purchased Items/ButtonPurchasedItem" to="." method="_on_button_purchased_item_pressed"]
+[connection signal="pressed" from="Purchased Items/ButtonAppStoreSync" to="." method="_on_button_app_store_sync_pressed"]
+[connection signal="pressed" from="Transactions/ButtonTransactionAll" to="." method="_on_button_transaction_all_pressed"]
+[connection signal="pressed" from="Transactions/ButtonTransactionCurrentEntitlements" to="." method="_on_button_transaction_current_entitlements_pressed"]
+[connection signal="pressed" from="Transactions/ButtonClear" to="." method="_on_button_clear_pressed"]
+[connection signal="pressed" from="Transactions/ButtonProceedUnfinished" to="." method="_on_button_proceed_unfinished_pressed"]
