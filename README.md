@@ -54,14 +54,14 @@ image 2
 
 The build steps are confirmed in the following environments.
 
-- Godot: 4.6
-- macOS: Tahoe 26.2
-- Xcode: 26.2
+- Godot: 4.7
+- macOS: Tahoe 26.5.1
+- Xcode: 26.5
     - Xcode minimum Deployment Target for iOS is 15
-- scons: v4.8.1
+- scons: v4.10.1
 	- scons is used to generate Godot header files
 - python: 3.12.2
-- iPhone: iPhone SE, iOS 26.2
+- iPhone: iPhone SE, iOS 26.5
 
 There are build steps.
 
@@ -340,7 +340,7 @@ Thank you [DrMoriarty](https://github.com/DrMoriarty) and [cengiz-pz](https://gi
 ```
 MIT License
 
-Copyright (c) 2025 Hiroki Taira
+Copyright (c) 2026 Hiroki Taira
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
