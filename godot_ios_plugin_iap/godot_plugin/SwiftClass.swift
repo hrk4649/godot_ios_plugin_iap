@@ -9,6 +9,23 @@ import StoreKit
 
     private var updateTask: Task<Void, Never>? = nil
 
+    /// When true (the default), verified transactions are finished before they are reported.
+    /// When false, they are reported unfinished and the app calls `finishTransaction` once it has
+    /// delivered the content, which is the order Apple recommends: an app that quits in between
+    /// gets the transaction again from Transaction.unfinished instead of losing it.
+    private static var autoFinish = true
+    /// Verified transactions waiting for `finishTransaction`, by transaction id. Guarded, with
+    /// autoFinish, by heldLock: purchase and update tasks run concurrently.
+    private static var heldTransactions: [String: Transaction] = [:]
+    private static let heldLock = NSLock()
+
+    /// NSLock.withLock needs iOS 16; this works from iOS 15 and from async code.
+    private static func withHeldLock<T>(_ body: () -> T) -> T {
+        heldLock.lock()
+        defer { heldLock.unlock() }
+        return body()
+    }
+
     override init() {
         super.init()
     }
@@ -54,6 +71,10 @@ import StoreKit
             return requestProceedUnfinishedTransactions()
         case "appStoreSync":
             return requestAppStoreSync()
+        case "setAutoFinish":
+            return requestSetAutoFinish(data: a2)
+        case "finishTransaction":
+            return requestFinishTransaction(data: a2)
         default:
             return 1
         }
@@ -170,7 +191,7 @@ import StoreKit
                 case .success(let verificationResult):
                     switch verificationResult {
                     case .verified(let transaction):
-                        await transaction.finish()
+                        await finishOrHold(transaction)
                         let resultData = convertToPurchaseResponse(transaction)
                         let withJws = addJwsRepresentation(currDict: resultData, verified: verificationResult)
                         response(a1: "purchase", a2: withJws)
@@ -276,6 +297,7 @@ import StoreKit
         resultData["request"] = "purchase"
         resultData["result"] = result
         resultData["productID"] = transaction.productID
+        resultData["transactionID"] = String(transaction.id)
         resultData["purchasedQuantity"] = String(
             describing: transaction.purchasedQuantity
         )
@@ -446,7 +468,7 @@ import StoreKit
     ) async {
         switch verificationResult {
         case .verified(let transaction):
-            await transaction.finish()
+            await finishOrHold(transaction)
             let resultData = convertToPurchaseResponse(transaction)
             let withJws = addJwsRepresentation(currDict: resultData, verified: verificationResult)
             response(a1: "purchase", a2: withJws)
@@ -473,6 +495,65 @@ import StoreKit
                 "result": "success",
             ]
             response(a1: "proceedUnfinishedTransactions", a2: resultData)
+        }
+        return 0
+    }
+
+    static func finishOrHold(_ transaction: Transaction) async {
+        let hold = withHeldLock { () -> Bool in
+            if autoFinish { return false }
+            heldTransactions[String(transaction.id)] = transaction
+            return true
+        }
+        if !hold {
+            await transaction.finish()
+        }
+    }
+
+    static func requestSetAutoFinish(data: NSDictionary) -> Int {
+        guard let value = data["autoFinish"] as? Bool else {
+            print("requestSetAutoFinish: no Bool 'autoFinish'")
+            return 1
+        }
+        withHeldLock { autoFinish = value }
+        return 0
+    }
+
+    static func requestFinishTransaction(data: NSDictionary) -> Int {
+        guard let transactionID = data["transactionID"] as? String else {
+            print("requestFinishTransaction: no String 'transactionID'")
+            return 1
+        }
+        Task {
+            var transaction = withHeldLock { heldTransactions.removeValue(forKey: transactionID) }
+            if transaction == nil {
+                // Reported before the app last quit: StoreKit still has it as unfinished.
+                for await result in Transaction.unfinished {
+                    if case .verified(let unfinished) = result, String(unfinished.id) == transactionID {
+                        transaction = unfinished
+                        break
+                    }
+                }
+            }
+            guard let transaction else {
+                response(
+                    a1: "finishTransaction",
+                    a2: [
+                        "request": "finishTransaction",
+                        "transactionID": transactionID,
+                        "result": "error",
+                        "error": "no unfinished transaction \(transactionID)",
+                    ])
+                return
+            }
+            await transaction.finish()
+            response(
+                a1: "finishTransaction",
+                a2: [
+                    "request": "finishTransaction",
+                    "transactionID": transactionID,
+                    "result": "success",
+                ])
         }
         return 0
     }

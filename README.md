@@ -141,6 +141,16 @@ The list shows what each request does and what information is returned in respon
 	- call [AppStore.sync()](https://developer.apple.com/documentation/storekit/appstore/sync()) to restore transaction information ```when a user suspects the app isn’t showing all the transactions.```
 	- Calling this method causes that Apple ID Login popup shows
 	- no argument required
+- `setAutoFinish`
+	- requires "autoFinish" (bool). The default is true, which keeps the existing behaviour: verified transactions are finished before they are reported
+	- with false, verified transactions are reported unfinished, and the app calls `finishTransaction` after it has delivered the content. This is the order Apple recommends for [Transaction.finish()](https://developer.apple.com/documentation/storekit/transaction/finish()): if the app quits in between, the transaction comes back from `proceedUnfinishedTransactions` or `startUpdateTask` instead of being lost
+	- call it before `startUpdateTask` and `proceedUnfinishedTransactions`
+	- every purchase response now includes "transactionID"
+- `finishTransaction`
+	- requires "transactionID" (String), from a purchase response
+	- finishes that transaction. One reported before the app last quit is looked up in [Transaction.unfinished](https://developer.apple.com/documentation/storekit/transaction/unfinished)
+	- returns a `finishTransaction` response with "result" "success", or "error" if no such unfinished transaction exists
+	- because an unfinished transaction is delivered again after a relaunch, record delivered transaction IDs so the same purchase is not delivered twice
 
 ### Sample project
 
